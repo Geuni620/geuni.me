@@ -1,3 +1,7 @@
+import Link from 'next/link';
+
+import { MAIN_MENU } from '@/constant';
+
 export default function Home() {
   return (
     <div data-animate data-animate-speed="slow">
@@ -10,18 +14,14 @@ export default function Home() {
       <div data-animate className="mb-7 mt-14 flex select-none gap-7">
         <p>공간</p>
         <ul>
-          <li className="flex items-center justify-center">
-            <p className="font-bold">수첩</p>
-            <span className="ml-3 text-base">행동합니다.</span>
-          </li>
-          <li className="flex items-center justify-center">
-            <p className="font-bold">서재</p>
-            <span className="ml-3 text-base">움직입니다.</span>
-          </li>
-          <li className="flex items-center justify-center">
-            <p className="font-bold">생각</p>
-            <span className="ml-3 text-base">표현합니다.</span>
-          </li>
+          {MAIN_MENU.map(({ title, description, href }) => (
+            <Link href={href} key={title}>
+              <li className="flex items-center justify-center">
+                <p className="font-bold">{title}</p>
+                <span className="ml-3 text-base">{description}</span>
+              </li>
+            </Link>
+          ))}
         </ul>
       </div>
     </div>

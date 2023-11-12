@@ -1,17 +1,17 @@
 export const MAIN_MENU = [
   {
-    title: '서재',
-    description: '작은 몸부림입니다.',
-    type: 'library',
-  },
-  {
     title: '수첩',
-    length: '길수도 짧을수도 있습니다.',
-    type: 'notebook',
+    description: '행동합니다.',
+    href: 'library',
   },
   {
-    title: '아이디어',
-    description: '작은 몸부림입니다.',
-    type: 'idea',
+    title: '서재',
+    description: '움직입니다.',
+    href: 'notebook',
+  },
+  {
+    title: '생각',
+    description: '표현합니다.',
+    href: 'idea',
   },
 ];
