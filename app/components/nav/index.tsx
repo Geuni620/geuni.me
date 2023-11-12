@@ -1,4 +1,4 @@
-import React from 'react';
+import { DarkModeToggle } from './DarkModeToggle';
 
 export const Nav = () => {
   return (
@@ -7,7 +7,7 @@ export const Nav = () => {
         <li>이근휘</li>
         <li>Geuni620</li>
       </div>
-      <li>다크모드</li>
+      <DarkModeToggle />
     </ul>
   );
 };

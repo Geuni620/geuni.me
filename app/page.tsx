@@ -1,5 +1,3 @@
-import { MAIN_MENU } from '@/constant';
-
 export default function Home() {
   return (
     <div>
@@ -10,18 +8,18 @@ export default function Home() {
       </div>
 
       <div className="my-14 flex gap-7">
-        <p>나의 공간</p>
+        <p>공간</p>
 
         <ul>
-          <li className="flex items-center">
+          <li className="flex items-center justify-center">
             <p className="font-bold">수첩</p>
             <span className="ml-3 text-sm">행동합니다.</span>
           </li>
-          <li className="flex items-center">
+          <li className="flex items-center justify-center">
             <p className="font-bold">서재</p>
-            <span className="ml-3 text-sm">몸부림입니다.</span>
+            <span className="ml-3 text-sm">움직입니다.</span>
           </li>
-          <li className="flex items-center">
+          <li className="flex items-center justify-center">
             <p className="font-bold">생각</p>
             <span className="ml-3 text-sm">표현합니다.</span>
           </li>
