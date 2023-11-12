@@ -1,11 +1,9 @@
 import './globals.css';
 
-import { Inter } from 'next/font/google';
+import { nanumPenScript } from '@/utils/fonts';
 
 import { Nav } from './components/nav';
 import { ThemeProviders } from './components/Wrapper/ThemeProvider';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Create Next App',
@@ -19,7 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} mx-auto max-w-xl py-[128px]`}>
+      <body
+        className={`${nanumPenScript.className} mx-auto max-w-xl py-[128px] text-2xl`}
+      >
         <ThemeProviders>
           <Nav />
           <main>{children}</main>
