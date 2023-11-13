@@ -16,9 +16,11 @@ export default function Home() {
         <ul>
           {MAIN_MENU.map(({ title, description, href }) => (
             <Link href={href} key={title}>
-              <li className="flex items-center justify-center">
+              <li className="li-item flex items-center justify-center">
                 <p className="font-bold">{title}</p>
-                <span className="ml-3 text-base">{description}</span>
+                <span className="description ml-3 text-base">
+                  {description}
+                </span>
               </li>
             </Link>
           ))}
