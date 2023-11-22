@@ -10,13 +10,18 @@ const ListPage = () => {
   );
 
   return (
-    <div>
+    <div className="mb-7 mt-14">
       {posts.map((post) => (
         <>
-          <h2 key={post._id}>{post.title}</h2>
-          <time dateTime={post.createdAt}>
-            {format(parseISO(post.createdAt), 'LLLL d, yyyy')}
-          </time>
+          {/* 2023 / 2022 / 2021 묶어줘야함 */}
+          <div className="mt-2 flex justify-between">
+            <h2 className="text-[22px]" key={post._id}>
+              {post.title}
+            </h2>
+            <time dateTime={post.createdAt}>
+              {format(parseISO(post.createdAt), 'MM.dd')}
+            </time>
+          </div>
         </>
       ))}
     </div>
