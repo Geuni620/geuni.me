@@ -1,32 +1,60 @@
-import { compareDesc } from 'date-fns';
+'use client';
+
 import { format, parseISO } from 'date-fns';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { allPosts } from '@/.contentlayer/generated';
 
 const ListPage = () => {
-  const posts = allPosts.sort((a, b) =>
-    compareDesc(new Date(a.createdAt), new Date(b.createdAt)),
+  const [hoveredYear, setHoveredYear] = useState<number | null>(null);
+
+  const uniqueYears = Array.from(
+    new Set(allPosts.map((post) => format(parseISO(post.createdAt), 'yyyy'))),
   );
 
-  console.log(posts[0]._raw);
+  const postsByYear = uniqueYears.map((year) => {
+    return {
+      year,
+      posts: allPosts.filter(
+        (post) => format(parseISO(post.createdAt), 'yyyy') === year,
+      ),
+    };
+  });
+
+  postsByYear.sort((a, b) => b.year.localeCompare(a.year));
 
   return (
     <div className="mb-7 mt-14">
-      {posts.map((post) => (
-        <>
-          {/* 2023 / 2022 / 2021 묶어줘야함 */}
-          <div className="mt-2 flex justify-between">
-            <Link href={`/posts/${post._raw.flattenedPath}`} className="">
-              <h2 className="text-[22px]" key={post._id}>
-                {post.title}
-              </h2>
-            </Link>
-            <time dateTime={post.createdAt}>
-              {format(parseISO(post.createdAt), 'MM.dd')}
-            </time>
-          </div>
-        </>
+      {postsByYear.map(({ year, posts }) => (
+        <div
+          data-animate
+          key={year}
+          onMouseEnter={() => setHoveredYear(Number(year))}
+          onMouseLeave={() => setHoveredYear(null)}
+          className={`border-t-2 py-5 last:border-b-2`}
+        >
+          <h2
+            className={`text-2xl ${
+              hoveredYear === Number(year) ? 'opacity-100' : 'opacity-40'
+            }`}
+          >
+            {year}
+          </h2>
+
+          {posts.map((post) => (
+            <div className="opacity-40 hover:opacity-100" key={post._id}>
+              <Link href={`/posts/${post._raw.flattenedPath}`}>
+                <div className="mt-2 flex justify-between">
+                  <span>{post.title}</span>
+                  <time dateTime={post.createdAt}>
+                    {format(parseISO(post.createdAt), 'MM.dd')}
+                  </time>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
       ))}
     </div>
   );

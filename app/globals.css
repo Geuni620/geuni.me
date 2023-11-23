@@ -106,7 +106,6 @@ https://github.com/bepyan/bepyan.me.v2/blob/797c366a60c406abed38ec02491ccc89b2b3
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* 기본 description 스타일 (기본적으로 숨겨져 있음) */
 .description {
   display: block;
   opacity: 0;
