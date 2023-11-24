@@ -25,10 +25,6 @@ export const Post = defineDocumentType(() => ({
       type: 'string',
       required: true,
     },
-    // thumbnail: {
-    //   type: 'string',
-    //   required: false,
-    // },
     createdAt: {
       type: 'date',
       required: true,

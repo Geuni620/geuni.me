@@ -6,6 +6,7 @@ import { useMDXComponent } from 'next-contentlayer/hooks';
 import { allPosts } from '@/.contentlayer/generated';
 
 const mdxComponents: MDXComponents = {
+  // 해당 부분의 a 태그만 Link로 Wrapping
   a: ({ href, children }) => <Link href={href as string}>{children}</Link>,
 };
 
@@ -20,21 +21,18 @@ export const generatedMetadata = ({ params }: { params: { slug: string } }) => {
 
 export default function Page({ params }: { params: { slug: string } }) {
   const post = allPosts.find((post) => post._raw.flattenedPath === params.slug);
-
   if (!post) notFound();
-
-  console.log(post.body.code);
 
   const MDXContent = useMDXComponent(post.body.code);
 
   return (
-    <article className="prose mx-auto">
-      {/* <div className="mb-8 text-center">
+    <article className="prose mx-auto w-full">
+      <div className="mb-8 text-center">
         <time dateTime={post.createdAt} className="mb-1 text-xs text-gray-600">
           {new Intl.DateTimeFormat('en-US').format(new Date(post.createdAt))}
         </time>
         <h1 className="text-3xl font-bold">{post.title}</h1>
-      </div> */}
+      </div>
       <MDXContent components={mdxComponents} />
     </article>
   );
