@@ -21,7 +21,6 @@ const ListPage = () => {
       ),
     };
   });
-
   postsByYear.sort((a, b) => b.year.localeCompare(a.year));
 
   return (
@@ -34,7 +33,7 @@ const ListPage = () => {
           className="border-t-2 py-5 last:border-b-2"
         >
           <h2
-            className={`text-2xl ${
+            className={`text-3xl ${
               hoveredYear === Number(year) ? 'opacity-100' : 'opacity-40'
             }`}
           >
