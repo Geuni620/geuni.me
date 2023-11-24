@@ -28,11 +28,10 @@ const ListPage = () => {
     <div className="mb-7 mt-14">
       {postsByYear.map(({ year, posts }) => (
         <div
-          data-animate
           key={year}
           onMouseEnter={() => setHoveredYear(Number(year))}
           onMouseLeave={() => setHoveredYear(null)}
-          className={`border-t-2 py-5 last:border-b-2`}
+          className="border-t-2 py-5 last:border-b-2"
         >
           <h2
             className={`text-2xl ${
@@ -44,7 +43,7 @@ const ListPage = () => {
 
           {posts.map((post) => (
             <div className="opacity-40 hover:opacity-100" key={post._id}>
-              <Link href={`/posts/${post._raw.flattenedPath}`}>
+              <Link data-animate href={`/posts/${post._raw.flattenedPath}`}>
                 <div className="mt-2 flex justify-between">
                   <span>{post.title}</span>
                   <time dateTime={post.createdAt}>
