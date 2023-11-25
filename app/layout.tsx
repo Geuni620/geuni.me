@@ -1,8 +1,8 @@
 import './globals.css';
 
-import { nanumPenScript } from '@/utils/fonts';
+import { Nav } from '@/app/components/nav/index';
+import { nanumBrushScript } from '@/utils/fonts';
 
-import { Nav } from './components/nav';
 import { ThemeProviders } from './components/Wrapper/ThemeProvider';
 
 export const metadata = {
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${nanumPenScript.className} mx-auto max-w-xl py-[128px] text-2xl`}
+        className={`${nanumBrushScript.className} mx-auto max-w-xl py-[128px] text-2xl`}
       >
         <ThemeProviders>
           <Nav />

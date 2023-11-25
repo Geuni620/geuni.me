@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { useMDXComponent } from 'next-contentlayer/hooks';
 
 import { allPosts } from '@/.contentlayer/generated';
+import { openSans } from '@/utils/fonts';
 
 const mdxComponents: MDXComponents = {
   // 해당 부분의 a 태그만 Link로 Wrapping
@@ -26,14 +27,19 @@ export default function Page({ params }: { params: { slug: string } }) {
   const MDXContent = useMDXComponent(post.body.code);
 
   return (
-    <article className="prose mx-auto w-full">
-      <div className="mb-8 text-center">
-        <time dateTime={post.createdAt} className="mb-1 text-xs text-gray-600">
+    <article className={`prose prose-slate mx-auto mt-10 w-full`}>
+      {/* <div className="mb-8">
+        <h1 className="text-3xl font-bold">{post.title}</h1>
+        <time
+          dateTime={post.createdAt}
+          className="mb-1 text-base text-gray-600"
+        >
           {new Intl.DateTimeFormat('en-US').format(new Date(post.createdAt))}
         </time>
-        <h1 className="text-3xl font-bold">{post.title}</h1>
+      </div> */}
+      <div className={`${openSans.className}`}>
+        <MDXContent components={mdxComponents} />
       </div>
-      <MDXContent components={mdxComponents} />
     </article>
   );
 }
