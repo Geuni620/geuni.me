@@ -1,7 +1,6 @@
 import './globals.css';
 
 import { Nav } from '@/app/components/nav/index';
-import { nanumBrushScript } from '@/utils/fonts';
 
 import { ThemeProviders } from './components/Wrapper/ThemeProvider';
 
@@ -17,9 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${nanumBrushScript.className} mx-auto max-w-xl py-[128px] text-2xl`}
-      >
+      <body className={`mx-auto max-w-xl py-[128px] text-2xl`}>
         <ThemeProviders>
           <Nav />
           <main>{children}</main>

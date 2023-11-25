@@ -2,8 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
 body {
   background: transparent;
+  font-family: 'Nanum Pen Script', cursive;
 }
 
 /**
