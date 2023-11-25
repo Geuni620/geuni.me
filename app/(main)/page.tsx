@@ -2,9 +2,11 @@ import Link from 'next/link';
 
 import { MAIN_MENU } from '@/constant';
 
+import { MainLayout } from '../components/layout/main-layout';
+
 export default function Home() {
   return (
-    <>
+    <MainLayout>
       <div data-animate data-animate-speed="slow">
         <div className="mb-7 mt-14 select-none">
           <p>기록하는 공간이 필요했습니다.</p>
@@ -28,6 +30,6 @@ export default function Home() {
           </ul>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }
