@@ -1,6 +1,6 @@
 import './globals.css';
 
-import { Nav } from '@/app/components/nav/index';
+import { Header } from '@/app/components/header/index';
 
 import { ThemeProviders } from './components/Wrapper/ThemeProvider';
 
@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`mx-auto max-w-xl py-[128px] text-2xl`}>
         <ThemeProviders>
-          <Nav />
+          <Header />
           <main>{children}</main>
         </ThemeProviders>
       </body>

@@ -1,17 +1,14 @@
-import Link from 'next/link';
+'use client';
 
-import { DarkModeToggle } from './DarkModeToggle';
+import { useRouter } from 'next/navigation';
 
 export const Nav = () => {
+  const router = useRouter();
   return (
-    <ul data-animate className="flex items-center justify-between">
-      <Link href="/">
-        <div className="flex gap-2">
-          <li>이근휘</li>
-          <li>Geuni620</li>
-        </div>
-      </Link>
-      <DarkModeToggle />
-    </ul>
+    <nav className="left-[20%] top-0">
+      <span className="cursor-pointer" onClick={() => router.back()}>
+        <img src="/arrow-back.svg" />
+      </span>
+    </nav>
   );
 };
