@@ -7,6 +7,7 @@ import { allPosts } from '@/.contentlayer/generated';
 import { DarkModeToggle } from '@/app/components/header/darkmode-toggle';
 import { extractSegment } from '@/utils/extractSegment';
 
+import { MainLayout } from '../layout/main-layout';
 import { HeaderInfo } from './header-info';
 
 export const Header = () => {
@@ -48,9 +49,11 @@ export const Header = () => {
   }
 
   return (
-    <ul data-animate className="flex items-start justify-between text-base">
-      <HeaderInfo name={name} description={description} />
-      <DarkModeToggle />
-    </ul>
+    <MainLayout>
+      <ul data-animate className="flex items-start justify-between text-base">
+        <HeaderInfo name={name} description={description} />
+        <DarkModeToggle />
+      </ul>
+    </MainLayout>
   );
 };

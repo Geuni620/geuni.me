@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { allPosts } from '@/.contentlayer/generated';
+import { GridLayout } from '@/app/components/layout/grid-layout';
+import { NavIcon } from '@/app/components/nav';
 
 const ListPage = () => {
   const [hoveredYear, setHoveredYear] = useState<number | null>(null);
@@ -24,37 +26,42 @@ const ListPage = () => {
   postsByYear.sort((a, b) => b.year.localeCompare(a.year));
 
   return (
-    <div className="my-7">
-      {postsByYear.map(({ year, posts }) => (
-        <div
-          key={year}
-          onMouseEnter={() => setHoveredYear(Number(year))}
-          onMouseLeave={() => setHoveredYear(null)}
-          className="border-t-[1px] py-5 last:border-b-[1px]"
-        >
-          <h2
-            className={`text-3xl ${
-              hoveredYear === Number(year) ? 'opacity-100' : 'opacity-40'
-            }`}
+    <GridLayout>
+      <div>
+        <NavIcon />
+      </div>
+      <div className="my-7">
+        {postsByYear.map(({ year, posts }) => (
+          <div
+            key={year}
+            onMouseEnter={() => setHoveredYear(Number(year))}
+            onMouseLeave={() => setHoveredYear(null)}
+            className="border-t-[1px] py-5 last:border-b-[1px]"
           >
-            {year}
-          </h2>
+            <h2
+              className={`text-3xl ${
+                hoveredYear === Number(year) ? 'opacity-100' : 'opacity-40'
+              }`}
+            >
+              {year}
+            </h2>
 
-          {posts.map((post) => (
-            <div className="opacity-40 hover:opacity-100" key={post._id}>
-              <Link data-animate href={`/library/${post._raw.flattenedPath}`}>
-                <div className="mt-2 flex justify-between">
-                  <span>{post.title}</span>
-                  <time dateTime={post.createdAt}>
-                    {format(parseISO(post.createdAt), 'MM.dd')}
-                  </time>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
+            {posts.map((post) => (
+              <div className="opacity-40 hover:opacity-100" key={post._id}>
+                <Link data-animate href={`/library/${post._raw.flattenedPath}`}>
+                  <div className="mt-2 flex justify-between">
+                    <span className="text-xl">{post.title}</span>
+                    <time dateTime={post.createdAt}>
+                      {format(parseISO(post.createdAt), 'MM.dd')}
+                    </time>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </GridLayout>
   );
 };
 

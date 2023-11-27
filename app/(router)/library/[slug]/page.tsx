@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { useMDXComponent } from 'next-contentlayer/hooks';
 
 import { allPosts } from '@/.contentlayer/generated';
-import { Nav } from '@/app/components/nav/index';
+import { GridLayout } from '@/app/components/layout/grid-layout';
+import { NavIcon } from '@/app/components/nav/index';
 import { openSans } from '@/utils/fonts';
 
 const mdxComponents: MDXComponents = {
@@ -28,13 +29,15 @@ export default function Page({ params }: { params: { slug: string } }) {
   const MDXContent = useMDXComponent(post.body.code);
 
   return (
-    <>
-      <article className={`prose prose-slate mx-auto mt-10 w-full`}>
-        <Nav />
+    <GridLayout>
+      <nav>
+        <NavIcon />
+      </nav>
+      <article className={`prose prose-slate w-full`}>
         <div className={`${openSans.className}`}>
           <MDXContent components={mdxComponents} />
         </div>
       </article>
-    </>
+    </GridLayout>
   );
 }

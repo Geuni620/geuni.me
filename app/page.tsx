@@ -1,8 +1,7 @@
 import Link from 'next/link';
 
+import { MainLayout } from '@/app/components/layout/main-layout';
 import { MAIN_MENU } from '@/constant';
-
-import { MainLayout } from '../components/layout/main-layout';
 
 export default function Home() {
   return (

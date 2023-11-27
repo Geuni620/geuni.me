@@ -5,5 +5,5 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  return <div className="max-w-xl">{children}</div>;
+  return <section className="mx-auto max-w-xl text-2xl">{children}</section>;
 };

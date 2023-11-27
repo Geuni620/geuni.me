@@ -114,3 +114,11 @@ https://github.com/bepyan/bepyan.me.v2/blob/797c366a60c406abed38ec02491ccc89b2b3
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
+.slug-layout {
+  display: grid;
+  grid-template-columns: 12rem 36rem 12rem;
+  grid-column-gap: 0.5rem;
+  align-items: start;
+  justify-content: center;
+}

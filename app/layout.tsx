@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`mx-auto max-w-xl py-[128px] text-2xl`}>
+    <html lang="ko">
+      <body className="py-[128px]">
         <ThemeProviders>
           <Header />
           <main>{children}</main>
