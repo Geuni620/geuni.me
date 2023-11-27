@@ -23,7 +23,12 @@ export const generatedMetadata = ({ params }: { params: { slug: string } }) => {
 };
 
 export default function Page({ params }: { params: { slug: string } }) {
-  const post = allPosts.find((post) => post._raw.flattenedPath === params.slug);
+  console.log('params');
+
+  const post = allPosts.find(
+    // TODO: decode url에 반영할 것
+    (post) => post._raw.flattenedPath === decodeURIComponent(params.slug),
+  );
   if (!post) notFound();
 
   const MDXContent = useMDXComponent(post.body.code);
@@ -33,8 +38,9 @@ export default function Page({ params }: { params: { slug: string } }) {
       <nav>
         <NavIcon />
       </nav>
-      <article className={`prose prose-slate w-full`}>
-        <div className={`${openSans.className}`}>
+
+      <article className={`prose prose-slate w-full ${openSans.className}`}>
+        <div data-animate className="mt-10">
           <MDXContent components={mdxComponents} />
         </div>
       </article>
