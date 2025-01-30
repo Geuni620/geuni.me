@@ -4,7 +4,7 @@ import { Container } from "./container";
 
 export const Header = () => {
   return (
-    <header>
+    <header className="header">
       <Container>
         <div className="flex flex-wrap gap-y-2 justify-between items-center">
           <Link href="/">
