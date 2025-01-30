@@ -17,7 +17,7 @@ export default async function Home() {
                 <PostCard
                   key={post.slug}
                   title={post.title}
-                  description={post.summary}
+                  date={post.date}
                   href={`/blog/${post.slug}`}
                 />
               ))}
