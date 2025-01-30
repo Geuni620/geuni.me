@@ -1,9 +1,9 @@
 import fs from "fs";
 import matter from "gray-matter";
-import { POST_PATH } from "@/constants/config";
+import { CONTENT_PATH } from "@/constants/config";
 
 export const generateStaticParams = async () => {
-  const files = fs.readdirSync(POST_PATH);
+  const files = fs.readdirSync(CONTENT_PATH);
 
   return files.map((file) => ({
     slug: file.replace(/\.mdx$/, ""),
@@ -12,7 +12,7 @@ export const generateStaticParams = async () => {
 
 export default function Page({ params }: { params: { slug: string } }) {
   const fileContent = fs.readFileSync(
-    `${POST_PATH}/${params.slug}.mdx`,
+    `${CONTENT_PATH}/${params.slug}.mdx`,
     "utf8"
   );
   const { data, content } = matter(fileContent);

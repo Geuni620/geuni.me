@@ -1,1 +1,1 @@
-export const POST_PATH = "src/content";
+export const CONTENT_PATH = "src/content";
