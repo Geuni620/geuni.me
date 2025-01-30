@@ -71,6 +71,12 @@ body {
   }
 }
 
+body {
+  @apply font-sans antialiased;
+  @apply bg-stone-100 dark:bg-stone-900;
+  @apply text-black/50 dark:text-white/75;
+}
+
 .header {
   @apply fixed top-0 left-0 right-0 z-50 py-5;
   @apply bg-stone-100/75 dark:bg-stone-900/25;
@@ -79,4 +85,9 @@ body {
 
 .main {
   @apply flex-1 py-32;
+}
+
+.animate {
+  @apply opacity-0 translate-y-3;
+  @apply transition-all duration-700 ease-out;
 }
