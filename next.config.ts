@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
   experimental: {
     mdxRs: true,
   },
+  /**
+   * @fixme
+   * 해당 부분 수정할 것
+   */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+    ],
+  },
 };
 
 const withMDX = createMDX({
