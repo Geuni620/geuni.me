@@ -10,11 +10,13 @@ export const generateStaticParams = async () => {
   }));
 };
 
-export default function Page({ params }: { params: { slug: string } }) {
-  const fileContent = fs.readFileSync(
-    `${CONTENT_PATH}/${params.slug}.mdx`,
-    "utf8"
-  );
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const fileContent = fs.readFileSync(`${CONTENT_PATH}/${slug}.mdx`, "utf8");
   const { data, content } = matter(fileContent);
 
   console.log("data", data, content);
