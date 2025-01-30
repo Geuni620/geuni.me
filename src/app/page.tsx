@@ -1,23 +1,29 @@
 import { PostCard } from "@/components/post-card";
 import { Container } from "@/components/layout";
-import { getPostList } from "@/utils/getPost";
+import { getPostByYear } from "@/utils/getPost";
 
 export default async function Home() {
-  const posts = await getPostList();
+  const postsByYear = await getPostByYear();
+  const years = Object.keys(postsByYear).sort((a, b) => b.localeCompare(a));
 
   return (
     <Container>
       <div className="space-y-16">
-        <section className="flex flex-col gap-4">
-          {posts.map((post) => (
-            <PostCard
-              key={post.slug}
-              title={post.title}
-              description={post.summary}
-              href={`/blog/${post.slug}`}
-            />
-          ))}
-        </section>
+        {years.map((year) => (
+          <section key={year} className="space-y-4">
+            <h2 className="font-semibold text-black dark:text-white">{year}</h2>
+            <div className="flex flex-col gap-4">
+              {postsByYear[year].map((post) => (
+                <PostCard
+                  key={post.slug}
+                  title={post.title}
+                  description={post.summary}
+                  href={`/blog/${post.slug}`}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
     </Container>
   );
