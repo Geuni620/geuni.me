@@ -1,5 +1,9 @@
-import { Header } from "@/components/header";
+import { PostCard } from "@/components/post-card";
 
 export default function Home() {
-  return <div>{/* <Header /> */}</div>;
+  return (
+    <div>
+      <PostCard title="title" description="description" href="/" />
+    </div>
+  );
 }
