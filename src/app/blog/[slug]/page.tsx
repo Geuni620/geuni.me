@@ -1,6 +1,9 @@
 import fs from "fs";
 import matter from "gray-matter";
+import { Container } from "@/components/layout";
 import { CONTENT_PATH } from "@/constants/config";
+import { PostBody } from "@/components/post-body";
+import { PostHeader } from "@/components/post-header";
 
 export const generateStaticParams = async () => {
   const files = fs.readdirSync(CONTENT_PATH);
@@ -20,9 +23,11 @@ export default async function Page({
   const { data, content } = matter(fileContent);
 
   return (
-    <article className="prose dark:prose-invert">
-      <h1>{data.title}</h1>
-      <div>{content}</div>
-    </article>
+    <Container>
+      <article className="prose dark:prose-invert">
+        <PostHeader title={data.title} date={data.date} />
+        <PostBody content={content} />
+      </article>
+    </Container>
   );
 }
