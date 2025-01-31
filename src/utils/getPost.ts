@@ -48,8 +48,6 @@ export async function getPostByYear(): Promise<PostByYear> {
   const posts = await getPostList();
   const sortedPosts = sortPostByDate(posts);
 
-  console.log(sortedPosts);
-
   return sortedPosts.reduce((acc, post) => {
     const year = new Date(post.date).getFullYear();
     acc[year] = acc[year] || [];
