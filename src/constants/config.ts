@@ -1,1 +1,3 @@
-export const CONTENT_PATH = "src/content";
+import path from "path";
+
+export const CONTENT_PATH = path.join(process.cwd(), "src/content");

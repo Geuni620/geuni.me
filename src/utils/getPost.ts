@@ -3,6 +3,7 @@ import matter from "gray-matter";
 import { CONTENT_PATH } from "@/constants/config";
 import path from "path";
 import { sync } from "glob";
+import { normalize } from "./index";
 
 interface PostFrontmatter {
   title: string;
@@ -28,7 +29,6 @@ export function sortPostByDate(posts: Post[]): Post[] {
 }
 
 export async function getPostList(): Promise<Post[]> {
-  // glob 패턴: 모든 md, mdx 파일을 재귀적으로 검색
   const pattern = path.join(CONTENT_PATH, "**", "*.{md,mdx}");
   const files = sync(pattern);
 
@@ -60,4 +60,36 @@ export async function getPostByYear(): Promise<PostByYear> {
     acc[year].push(post);
     return acc;
   }, {} as PostByYear);
+}
+
+export async function getPostBySlug({
+  slug,
+}: {
+  slug: string;
+}): Promise<string> {
+  const decodedSlug = decodeURIComponent(slug || "");
+
+  if (!decodedSlug) {
+    throw new Error("slug 값이 제공되지 않았습니다.");
+  }
+
+  const normalizedTargetSlug = normalize(decodedSlug);
+
+  const pattern = path.join(CONTENT_PATH, "**", "*.{md,mdx}");
+  const files = sync(pattern);
+
+  const matchingFile = files.find((filePath) => {
+    const relativePath = path.relative(CONTENT_PATH, filePath);
+    const withoutExt = relativePath.replace(/\.(md|mdx)$/, "");
+    const slugArray = withoutExt.split(path.sep);
+    const fileSlug = slugArray.pop() || "";
+
+    return normalize(fileSlug) === normalizedTargetSlug;
+  });
+
+  if (!matchingFile) {
+    throw new Error(`파일을 찾을 수 없습니다: ${decodedSlug}`);
+  }
+
+  return fs.readFileSync(matchingFile, "utf8");
 }
