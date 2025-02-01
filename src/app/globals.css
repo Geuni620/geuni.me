@@ -91,3 +91,11 @@ body {
   @apply opacity-0 translate-y-3;
   @apply transition-all duration-700 ease-out;
 }
+
+/**
+ * posts-group 내부에 a 요소가 hover 상태이면 .year-label에 스타일 적용
+ */
+.posts-group:hover .year-label,
+.posts-group:has(a:hover) .year-label {
+  @apply text-gray-900 dark:text-white;
+}
