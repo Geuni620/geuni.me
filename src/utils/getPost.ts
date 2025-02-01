@@ -1,6 +1,8 @@
 import fs from "fs";
 import matter from "gray-matter";
 import { CONTENT_PATH } from "@/constants/config";
+import path from "path";
+import { sync } from "glob";
 
 interface PostFrontmatter {
   title: string;
@@ -26,20 +28,24 @@ export function sortPostByDate(posts: Post[]): Post[] {
 }
 
 export async function getPostList(): Promise<Post[]> {
-  const files = fs.readdirSync(CONTENT_PATH);
+  // glob 패턴: 모든 md, mdx 파일을 재귀적으로 검색
+  const pattern = path.join(CONTENT_PATH, "**", "*.{md,mdx}");
+  const files = sync(pattern);
 
-  const posts = files
-    .filter((file) => file.endsWith(".mdx"))
-    .map((file) => {
-      const slug = file.replace(/\.mdx$/, "");
-      const fileContent = fs.readFileSync(`${CONTENT_PATH}/${file}`, "utf8");
-      const { data } = matter(fileContent);
+  const posts = files.map((filePath) => {
+    const relativePath = path.relative(CONTENT_PATH, filePath);
+    const parts = relativePath.split(path.sep);
+    const fileName = parts.pop() || ""; // 경로는 제외하고, 마지막 mdx, md 파일만 빼냄
+    const slug = fileName.replace(/\.(md|mdx)$/, "");
 
-      return {
-        slug,
-        ...data,
-      } as Post;
-    });
+    const fileContent = fs.readFileSync(filePath, "utf8");
+    const { data } = matter(fileContent);
+
+    return {
+      slug,
+      ...data,
+    } as Post;
+  });
 
   return posts;
 }
