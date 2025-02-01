@@ -16,11 +16,6 @@ export const Header = () => {
               className="rounded-full"
             />
           </Link>
-
-          <nav className="flex gap-1">
-            <Link href="/blog">blog</Link>
-            <Link href="/projects">projects</Link>
-          </nav>
         </div>
       </Container>
     </header>
