@@ -28,9 +28,9 @@ export default async function Home() {
                 >
                   {index === 0 && year}
                 </div>
-                <div className="text-gray-500 transition-colors hover:text-gray-900 dark:hover:text-white">
+                <p className="text-base text-gray-500 transition-colors hover:text-gray-900 dark:hover:text-white">
                   {title}
-                </div>
+                </p>
                 <div className="text-gray-500 text-sm transition-colors hover:text-gray-900 dark:hover:text-white">
                   {dayjs(date).format("MM. DD.")}
                 </div>
