@@ -17,7 +17,7 @@ export default async function Home() {
           >
             {postsByYear[year].map(({ slug, title, date }, index) => (
               <Link
-                key={slug}
+                key={`${year}-${slug}-${index}`}
                 href={`/blog/${slug}`}
                 className="grid grid-cols-[100px_1fr_100px] gap-4 items-center"
               >
