@@ -8,6 +8,7 @@ import { normalize } from "./index";
 interface PostFrontmatter {
   title: string;
   date: string;
+  dateArray: string[];
   categories: string[];
   summary: string;
   thumbnail: string;
@@ -38,11 +39,28 @@ export async function getPostList(): Promise<Post[]> {
     const fileName = parts.pop() || ""; // 경로는 제외하고, 마지막 mdx, md 파일만 빼냄
     const slug = fileName.replace(/\.(md|mdx)$/, "");
 
+    // yyyy-mm-dd 또는 yyyy-mm 형식으로 변환
+    let formattedDate = "";
+    if (parts.length === 3) {
+      // year, month, day가 모두 있는 경우
+      formattedDate = `${parts[0]}-${String(parts[1]).padStart(
+        2,
+        "0"
+      )}-${String(parts[2]).padStart(2, "0")}`;
+    } else if (parts.length === 2) {
+      // year, month만 있는 경우
+      formattedDate = `${parts[0]}-${String(parts[1]).padStart(2, "0")}`;
+    } else if (parts.length === 1) {
+      // year만 있는 경우
+      formattedDate = `${parts[0]}`;
+    }
+
     const fileContent = fs.readFileSync(filePath, "utf8");
     const { data } = matter(fileContent);
 
     return {
       slug,
+      dateArray: formattedDate.split("-"),
       ...data,
     } as Post;
   });

@@ -21,7 +21,7 @@ export default async function Page({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const targetSlug = slug.at(0) || null;
+  const targetSlug = slug.at(-1) || null;
 
   if (!targetSlug) {
     return <div>Slug not found</div>;
