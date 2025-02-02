@@ -1,9 +1,7 @@
-import { MDXRemote } from "next-mdx-remote/rsc";
-
 interface PostBodyProps {
-  content: string;
+  content: React.ReactNode;
 }
 
 export const PostBody = ({ content }: PostBodyProps) => {
-  return <MDXRemote source={content} />;
+  return <>{content}</>;
 };

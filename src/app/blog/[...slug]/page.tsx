@@ -4,6 +4,8 @@ import { PostBody } from "@/components/post-body";
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug } from "@/utils/getPost";
+import transformImgSrc from "@/lib/remark-absolute-image.mjs";
+import { compileMDX } from "next-mdx-remote/rsc";
 
 /**
  * @fixme
@@ -31,6 +33,17 @@ export default async function Page({
   const { data, content } = matter(findPostBySlug);
   const readingMinutes = Math.ceil(readingTime(content).minutes);
 
+  const compiledContent = await compileMDX({
+    source: content,
+    options: {
+      mdxOptions: {
+        remarkPlugins: [transformImgSrc(slug)],
+      },
+    },
+  });
+
+  console.log("compiledContent", compiledContent.content);
+
   return (
     <Container>
       <article className="prose dark:prose-invert">
@@ -39,7 +52,7 @@ export default async function Page({
           date={data.date}
           readingTime={readingMinutes}
         />
-        <PostBody content={content} />
+        <PostBody content={compiledContent.content} />
       </article>
     </Container>
   );
