@@ -23,13 +23,13 @@ export default async function Page({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-  const targetSlug = slug.at(-1) || null;
 
-  if (!targetSlug) {
+  if (!slug) {
     return <div>Slug not found</div>;
   }
 
-  const findPostBySlug = await getPostBySlug({ slug: targetSlug });
+  const findPostBySlug = await getPostBySlug({ slug: slug });
+
   const { data, content } = matter(findPostBySlug);
   const readingMinutes = Math.ceil(readingTime(content).minutes);
 
@@ -41,8 +41,6 @@ export default async function Page({
       },
     },
   });
-
-  console.log("compiledContent", compiledContent.content);
 
   return (
     <Container>

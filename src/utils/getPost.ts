@@ -83,9 +83,14 @@ export async function getPostByYear(): Promise<PostByYear> {
 export async function getPostBySlug({
   slug,
 }: {
-  slug: string;
+  slug: string[];
 }): Promise<string> {
-  const decodedSlug = decodeURIComponent(slug || "");
+  const decodedSlug = slug
+    .map((segment) => decodeURIComponent(segment))
+    .map((segment) =>
+      isNaN(Number(segment)) ? segment : String(Number(segment))
+    )
+    .join("/");
 
   if (!decodedSlug) {
     throw new Error("slug 값이 제공되지 않았습니다.");
@@ -100,7 +105,12 @@ export async function getPostBySlug({
     const relativePath = path.relative(CONTENT_PATH, filePath);
     const withoutExt = relativePath.replace(/\.(md|mdx)$/, "");
     const slugArray = withoutExt.split(path.sep);
-    const fileSlug = slugArray.pop() || "";
+
+    const fileSlug = slugArray
+      .map((segment) => {
+        return isNaN(Number(segment)) ? segment : String(Number(segment));
+      })
+      .join("/");
 
     return normalize(fileSlug) === normalizedTargetSlug;
   });
