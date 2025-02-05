@@ -6,16 +6,17 @@ import readingTime from "reading-time";
 import { getPostBySlug } from "@/utils/getPost";
 import transformImgSrc from "@/lib/remark-absolute-image.mjs";
 import { compileMDX } from "next-mdx-remote/rsc";
+import { getPostList } from "@/utils/getPost";
 
-/**
- * @fixme
- * SSG 적용할거면, 경로 생성 미리 해야해서 그떄 적용할 것
- */
-// export const generateStaticParams = async () => {
-//   const posts = await getPostBySlug({ slug: "1월 스크랩" });
+export const dynamicParams = false;
 
-//   return posts;
-// };
+export const generateStaticParams = async () => {
+  const posts = await getPostList();
+
+  return posts.map(({ dateArray, slug }) => ({
+    slug: [...dateArray, slug],
+  }));
+};
 
 export default async function Page({
   params,
@@ -23,34 +24,19 @@ export default async function Page({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-
-  if (!slug) {
-    return <div>Slug not found</div>;
-  }
-
-  const findPostBySlug = await getPostBySlug({ slug: slug });
-
-  const { data, content } = matter(findPostBySlug);
-  const readingMinutes = Math.ceil(readingTime(content).minutes);
-
-  const compiledContent = await compileMDX({
-    source: content,
-    options: {
-      mdxOptions: {
-        remarkPlugins: [transformImgSrc(slug)],
-      },
-    },
-  });
+  const MDXModule = await import(`@/content/${slug.join("/")}.mdx`);
+  const { default: MDX } = MDXModule;
 
   return (
     <Container>
       <article className="prose dark:prose-invert">
-        <PostHeader
+        <MDX />
+        {/* <PostHeader
           title={data.title}
           date={data.date}
           readingTime={readingMinutes}
         />
-        <PostBody content={compiledContent.content} />
+        <PostBody content={compiledContent.content} /> */}
       </article>
     </Container>
   );
