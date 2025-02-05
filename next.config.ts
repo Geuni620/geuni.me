@@ -6,12 +6,6 @@ const nextConfig: NextConfig = {
   experimental: {
     mdxRs: true,
   },
-  /**
-   * @description
-   * If using with Turbopack,
-   * you'll need to add the following to your next.config.js until this issue is resolved:
-   */
-  transpilePackages: ["next-mdx-remote"],
 
   /**
    * @fixme
