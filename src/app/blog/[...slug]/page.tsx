@@ -1,4 +1,3 @@
-import matter from "gray-matter";
 import { Container } from "@/components/layout";
 import { PostBody } from "@/components/post-body";
 import { PostHeader } from "@/components/post-header";
@@ -15,6 +14,13 @@ export const generateStaticParams = async () => {
   }));
 };
 
+type Frontmatter = {
+  title: string;
+  date: string;
+  categories: string[];
+  summary: string;
+};
+
 export default async function Page({
   params,
 }: {
@@ -27,15 +33,14 @@ export default async function Page({
   }
 
   const findPostBySlug = await getPostBySlug({ slug: slug });
-  const { data, content } = matter(findPostBySlug);
-  const readingMinutes = Math.ceil(readingTime(content).minutes);
-
-  const compiledContent = await compileMDX({
-    source: content,
+  const readingMinutes = Math.ceil(readingTime(findPostBySlug).minutes);
+  const { content, frontmatter } = await compileMDX<Frontmatter>({
+    source: findPostBySlug,
     options: {
       mdxOptions: {
         remarkPlugins: [transformImgPath(slug)],
       },
+      parseFrontmatter: true,
     },
   });
 
@@ -43,11 +48,12 @@ export default async function Page({
     <Container>
       <article className="prose dark:prose-invert">
         <PostHeader
-          title={data.title}
-          date={data.date}
+          title={frontmatter.title}
+          date={frontmatter.date}
           readingTime={readingMinutes}
         />
-        <PostBody content={compiledContent.content} />
+        {content}
+        {/* <PostBody content={content} /> */}
       </article>
     </Container>
   );
