@@ -3,19 +3,17 @@ import { Container } from "@/components/layout";
 import { PostBody } from "@/components/post-body";
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
-import { getPostBySlug } from "@/utils/getPost";
+import { getPostBySlug, getPostList } from "@/utils/getPost";
 import transformImgSrc from "@/lib/remark-absolute-image.mjs";
 import { compileMDX } from "next-mdx-remote/rsc";
 
-/**
- * @fixme
- * SSG 적용할거면, 경로 생성 미리 해야해서 그떄 적용할 것
- */
-// export const generateStaticParams = async () => {
-//   const posts = await getPostBySlug({ slug: "1월 스크랩" });
+export const generateStaticParams = async () => {
+  const posts = await getPostList();
 
-//   return posts;
-// };
+  return posts.map(({ dateArray, slug }) => ({
+    slug: [...dateArray, slug],
+  }));
+};
 
 export default async function Page({
   params,
