@@ -4,7 +4,7 @@ import { PostBody } from "@/components/post-body";
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
-import transformImgSrc from "@/lib/remark-absolute-image.mjs";
+import transformImgPath from "@/lib/remark-absolute-image.mjs";
 import { compileMDX } from "next-mdx-remote/rsc";
 
 export const generateStaticParams = async () => {
@@ -34,7 +34,7 @@ export default async function Page({
     source: content,
     options: {
       mdxOptions: {
-        remarkPlugins: [transformImgSrc(slug)],
+        remarkPlugins: [transformImgPath(slug)],
       },
     },
   });

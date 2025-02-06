@@ -1,6 +1,6 @@
 import { visit } from "unist-util-visit";
 
-export default function transformImgSlug(slugSegments) {
+export default function transformImgPath(slugSegments) {
   return () => (tree) => {
     visit(tree, "image", (node) => {
       if (node.url.startsWith("./")) {
