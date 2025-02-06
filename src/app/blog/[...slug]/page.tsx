@@ -25,7 +25,8 @@ export default async function Page({
 }) {
   const { slug } = await params;
   const MDXModule = await import(`@/content/${slug.join("/")}.mdx`);
-  const { default: MDX } = MDXModule;
+  const { frontmatter, default: MDX } = MDXModule;
+  console.log("frontmatter", frontmatter);
 
   return (
     <Container>
