@@ -27,7 +27,6 @@ export default async function Page({
   }
 
   const findPostBySlug = await getPostBySlug({ slug: slug });
-
   const { data, content } = matter(findPostBySlug);
   const readingMinutes = Math.ceil(readingTime(content).minutes);
 

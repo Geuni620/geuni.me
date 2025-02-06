@@ -1,15 +1,11 @@
-import createMDX from "@next/mdx";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
-  experimental: {
-    mdxRs: true,
-  },
   /**
    * @description
-   * If using with Turbopack,
-   * you'll need to add the following to your next.config.js until this issue is resolved:
+   * If using with Turbopack, you'll need to add the following to your next.config.js until this issue is resolved:
+   * cc. https://github.com/vercel/next.js/issues/64525
+   *
    */
   transpilePackages: ["next-mdx-remote"],
 
@@ -27,9 +23,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withMDX = createMDX({
-  // Add markdown plugins here, as desired
-});
-
-// Merge MDX config with Next.js config
-export default withMDX(nextConfig);
+export default nextConfig;
