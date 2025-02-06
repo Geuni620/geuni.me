@@ -4,8 +4,8 @@ import { PostBody } from "@/components/post-body";
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
-import transformImgSrc from "@/lib/remark-absolute-image.mjs";
-import { compileMDX } from "next-mdx-remote/rsc";
+
+import createMDX from "@next/mdx";
 
 export const dynamicParams = false;
 
@@ -25,18 +25,19 @@ export default async function Page({
   const { slug } = await params;
   const MDXModule = await import(`@/content/${slug.join("/")}.mdx`);
   const { frontmatter, default: MDX } = MDXModule;
-  console.log("frontmatter", frontmatter);
 
   return (
     <Container>
       <article className="prose dark:prose-invert">
-        <MDX />
-        {/* <PostHeader
-          title={data.title}
-          date={data.date}
-          readingTime={readingMinutes}
+        <PostHeader
+          title={frontmatter.title}
+          date={frontmatter.date}
+          readingTime={123}
         />
-        <PostBody content={compiledContent.content} /> */}
+
+        <MDX />
+
+        {/* <PostBody content={compiledContent.content} /> */}
       </article>
     </Container>
   );
