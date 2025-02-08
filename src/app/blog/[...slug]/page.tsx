@@ -1,6 +1,6 @@
 import matter from "gray-matter";
 import { Container } from "@/components/layout";
-import { PostBody } from "@/components/post-body";
+
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
