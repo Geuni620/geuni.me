@@ -5,8 +5,6 @@ import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
 
-import createMDX from "@next/mdx";
-
 export const dynamicParams = false;
 
 export const generateStaticParams = async () => {
@@ -23,8 +21,17 @@ export default async function Page({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
+
+  /**
+   * @description
+   * remark를 통해 이미지 경로를 절대 경로로 변경시키고 싶었지만, 실패..
+   * post를 가져온 이유는, string 형태로 content를 가져오기 위함
+   */
   const MDXModule = await import(`@/content/${slug.join("/")}.mdx`);
-  const { frontmatter, default: MDX } = MDXModule;
+  const post = await getPostBySlug({ slug });
+  const { content } = matter(post);
+  const { frontmatter, default: MDXComponent } = MDXModule;
+  const readingMinutes = readingTime(content);
 
   return (
     <Container>
@@ -32,12 +39,9 @@ export default async function Page({
         <PostHeader
           title={frontmatter.title}
           date={frontmatter.date}
-          readingTime={123}
+          readingTime={readingMinutes.minutes}
         />
-
-        <MDX />
-
-        {/* <PostBody content={compiledContent.content} /> */}
+        <MDXComponent />
       </article>
     </Container>
   );
