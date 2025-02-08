@@ -27,8 +27,10 @@ export default async function Page({
    * remark를 통해 이미지 경로를 절대 경로로 변경시키고 싶었지만, 실패..
    * post를 가져온 이유는, string 형태로 content를 가져오기 위함
    */
-  const MDXModule = await import(`@/content/${slug.join("/")}.mdx`);
-  const post = await getPostBySlug({ slug });
+  const [MDXModule, post] = await Promise.all([
+    import(`@/content/${slug.join("/")}.mdx`),
+    getPostBySlug({ slug }),
+  ]);
   const { content } = matter(post);
   const { frontmatter, default: MDXComponent } = MDXModule;
   const readingMinutes = readingTime(content);
