@@ -1,44 +1,39 @@
 import { visit } from "unist-util-visit";
-import { toString } from "mdast-util-to-string";
 
-export default function remarkToc() {
+export const remarkTOC = () => {
   return (tree) => {
-    const headings = [];
+    const toc = [];
 
-    // 헤딩 수집
     visit(tree, "heading", (node) => {
-      const text = toString(node);
-      const id = text.toLowerCase().replace(/\s+/g, "-");
-      headings.push({
-        depth: node.depth,
-        text,
+      const heading = node.children
+        .filter((child) => child.type === "text")
+        .map((child) => child.value)
+        .join(" ");
+
+      const id = heading.toLowerCase().replace(/ /g, "-");
+
+      node.data = node.data || {};
+      node.data.hProperties = node.data.hProperties || {};
+      node.data.hProperties.id = id;
+
+      toc.push({
         id,
+        heading,
+        depth: node.depth,
       });
     });
 
-    // TOC 생성
-    const tocNode = {
-      type: "list",
-      children: headings.map((heading) => ({
-        type: "listItem",
-        children: [
-          {
-            type: "link",
-            url: `#${heading.id}`,
-            children: [{ type: "text", value: heading.text }],
-          },
-        ],
-      })),
-    };
+    /**
+     * @description
+     * TOC 데이터를 문자열로 변환하여 export 구문 생성
+     */
+    const exportStr = `export const toc = ${JSON.stringify(toc)}`;
 
-    // 문서 시작 부분에 TOC 추가
-    tree.children.unshift(
-      {
-        type: "heading",
-        depth: 2,
-        children: [{ type: "text", value: "Table of Contents" }],
-      },
-      tocNode
-    );
+    tree.children.unshift({
+      type: "mdxjsEsm",
+      value: exportStr,
+    });
+
+    return tree;
   };
-}
+};

@@ -32,11 +32,10 @@ export default async function Page({
     getPostBySlug({ slug }),
   ]);
   const { content } = matter(post);
-  const { frontmatter, default: MDXComponent } = MDXModule;
+  const { frontmatter, default: MDXComponent, toc } = MDXModule;
   const readingMinutes = readingTime(content);
-  /**
-   * @TODO: TOC
-   */
+
+  console.log("toc", toc);
 
   return (
     <Container>
@@ -46,6 +45,7 @@ export default async function Page({
           date={frontmatter.date}
           readingTime={readingMinutes.minutes}
         />
+
         <MDXComponent />
       </article>
     </Container>
