@@ -1,5 +1,5 @@
 import matter from "gray-matter";
-import { Container } from "@/components/layout";
+import { NavIcon } from "@/components/layout/nav";
 
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
@@ -38,16 +38,22 @@ export default async function Page({
   console.log("toc", toc);
 
   return (
-    <Container>
+    <section className="grid mx-auto w-[1072px] grid-cols-[192px_720px_192px]">
+      <nav className="flex gap-2 mt-2">
+        <NavIcon />
+        <span>back</span>
+      </nav>
+
       <article className="prose dark:prose-invert">
         <PostHeader
           title={frontmatter.title}
           date={frontmatter.date}
           readingTime={readingMinutes.minutes}
         />
-
         <MDXComponent />
       </article>
-    </Container>
+
+      <div className="bg-red-500" />
+    </section>
   );
 }
