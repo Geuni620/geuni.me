@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 
 const SOURCE_DIR = path.join(process.cwd(), "src", "content");
-const TARGET_DIR = path.join(process.cwd(), "public", "images");
+const TARGET_DIR = path.join(process.cwd(), "public", "blog");
 
 const copyImage = async () => {
   try {

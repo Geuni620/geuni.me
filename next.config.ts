@@ -1,13 +1,14 @@
 import type { NextConfig } from "next";
+import remarkFrontmatter from "remark-frontmatter";
+import remarkMdxFrontmatter from "remark-mdx-frontmatter";
+import { remarkTOC } from "./scripts/remark-toc.mjs";
+import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
-  /**
-   * @description
-   * If using with Turbopack, you'll need to add the following to your next.config.js until this issue is resolved:
-   * cc. https://github.com/vercel/next.js/issues/64525
-   *
-   */
-  transpilePackages: ["next-mdx-remote"],
+  pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  experimental: {
+    mdxRs: false,
+  },
 
   /**
    * @fixme
@@ -23,4 +24,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [remarkFrontmatter, remarkMdxFrontmatter, remarkTOC],
+  },
+});
+
+// Merge MDX config with Next.js config
+export default withMDX(nextConfig);
