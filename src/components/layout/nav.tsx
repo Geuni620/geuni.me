@@ -1,14 +1,18 @@
-"use client";
+import { Undo2 } from "lucide-react";
+import { TOC } from "./toc";
 
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-export const NavIcon = () => {
-  const router = useRouter();
+export const Nav = ({ toc }) => {
   return (
-    <div className="left-[20%] top-0">
-      <span className="cursor-pointer" onClick={() => router.back()}>
-        <Image src="/arrow-back.svg" alt="arrow-back" width={20} height={20} />
-      </span>
-    </div>
+    <>
+      <nav className="fixed top-25 w-[192px] flex items-center gap-2 mt-2 cursor-pointer transition-colors hover:text-gray-500">
+        <div className="relative">
+          <Undo2 className="w-5 h-5 transition-colors duration-200" />
+          <span className="absolute left-[28px] top-1/2 -translate-y-1/2 transition-colors duration-200">
+            Back
+          </span>
+        </div>
+      </nav>
+      <TOC items={toc} />
+    </>
   );
 };

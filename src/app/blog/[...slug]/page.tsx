@@ -1,9 +1,10 @@
 import matter from "gray-matter";
-import { NavIcon } from "@/components/layout/nav";
 
 import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
+import { Nav } from "@/components/layout/nav";
+import { TOC } from "@/components/layout/toc";
 
 export const dynamicParams = false;
 
@@ -33,22 +34,21 @@ export default async function Page({
   ]);
   const { content } = matter(post);
   const { frontmatter, default: MDXComponent, toc } = MDXModule;
-  const readingMinutes = readingTime(content);
+  const readingMinutes = Math.ceil(readingTime(content).minutes);
 
   console.log("toc", toc);
 
   return (
-    <section className="grid mx-auto w-[1072px] grid-cols-[192px_720px_192px]">
-      <nav className="flex gap-2 mt-2">
-        <NavIcon />
-        <span>back</span>
-      </nav>
+    <section className="grid mx-auto w-[1072px] grid-cols-[192px_720px_192px] justify-center">
+      <div>
+        <Nav toc={toc} />
+      </div>
 
       <article className="prose dark:prose-invert">
         <PostHeader
           title={frontmatter.title}
           date={frontmatter.date}
-          readingTime={readingMinutes.minutes}
+          readingTime={readingMinutes}
         />
         <MDXComponent />
       </article>
