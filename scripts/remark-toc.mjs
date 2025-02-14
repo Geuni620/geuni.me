@@ -32,6 +32,28 @@ export const remarkTOC = () => {
     tree.children.unshift({
       type: "mdxjsEsm",
       value: exportStr,
+      data: {
+        estree: {
+          type: "Program",
+          body: [
+            {
+              type: "ExportNamedDeclaration",
+              declaration: {
+                type: "VariableDeclaration",
+                kind: "const",
+                declarations: [
+                  {
+                    type: "VariableDeclarator",
+                    id: { type: "Identifier", name: "toc" },
+                    init: { type: "Literal", value: toc },
+                  },
+                ],
+              },
+              specifiers: [],
+            },
+          ],
+        },
+      },
     });
 
     return tree;
