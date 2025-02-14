@@ -50,7 +50,7 @@ export default async function Page({
         <MDXComponent />
       </article>
 
-      <div className="bg-red-500" />
+      <div />
     </section>
   );
 }

@@ -5,6 +5,8 @@ categories: ["개발"]
 summary: "onKeyup, onKeydown, onSubmit의 이벤트 실행순서는 어떻게 될까?"
 ---
 
+import { SideNote } from "@/components/layout";
+
 ![](./img.webp)
 
 > 회사에서 급하게 일정이 잡힌 백로그를 개발하게 되었다.  
@@ -361,7 +363,10 @@ onKeydown이나 onKeyup 이벤트는 event.key가 Enter인지 확인한 뒤 분�
 센터에서 사용하는 바코드스캐너는 이벤트가 **무조건 두 번씩 동작했다.**  
 즉, onSubmit, onKeyup 이벤트가 각각 두 번씩 발생했던 것이다.
 
-이를 막아주는 방어로직을 추가한 뒤 문제를 해결할 수 있었고, 안정적으로 배포를 내보낼 수 있었다.
+<SideNote>이런게 되려나..</SideNote>
+
+이를 막아주는 방어로직을 추가한 뒤 문제를 해결할 수 있었고, 안정적으로 배포를 내보낼
+수 있었다.
 
 <br />
 
