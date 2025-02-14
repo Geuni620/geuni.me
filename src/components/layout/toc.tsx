@@ -15,7 +15,7 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
         <li
           key={item.id}
           className={cn(
-            "text-[13px] leading-relaxed",
+            "text-[13px] leading-6",
             item.depth === 1 && "font-medium text-foreground",
             item.depth > 1 && "text-muted-foreground"
           )}
