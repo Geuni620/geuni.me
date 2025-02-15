@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface TOC {
   id: string;
@@ -9,6 +10,30 @@ interface TOC {
 }
 
 export const TOC = ({ toc }: { toc: TOC[] }) => {
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-100px 0px -66%" }
+    );
+
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [toc]);
+
   return (
     <ul className="text-sm pl-1">
       {toc.map((item) => (
@@ -38,7 +63,10 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
                 window.scrollTo({ top: y, behavior: "smooth" });
               }
             }}
-            className="hover:text-foreground transition-colors"
+            className={cn(
+              "hover:text-foreground transition-colors",
+              activeId === item.id && "text-foreground"
+            )}
           >
             {item.heading}
           </a>
