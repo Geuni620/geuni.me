@@ -8,6 +8,8 @@ body {
 
 @layer base {
   :root {
+    --bg-light: 0 0% 95%;
+
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -33,6 +35,17 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
+
+    --sh-class: #2c5282;
+    --sh-identifier: #2d3748;
+    --sh-sign: #4a5568;
+    --sh-property: #3182ce;
+    --sh-entity: #319795;
+    --sh-jsxliterals: #6b46c1;
+    --sh-string: #38a169;
+    --sh-keyword: #d53f8c;
+    --sh-comment: #718096;
+    --sh-highlight: rgba(56, 189, 248, 0.12);
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -60,6 +73,10 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+}
+
+.sh__line--highlighted {
+  background-color: var(--sh-highlight);
 }
 
 @layer base {

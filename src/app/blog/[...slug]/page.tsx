@@ -41,7 +41,7 @@ export default async function Page({
         <Nav toc={toc} />
       </div>
 
-      <article className="prose dark:prose-invert mx-auto">
+      <article className="prose prose-pre:bg-pre-light mx-auto">
         <PostHeader
           title={frontmatter.title}
           date={frontmatter.date}
