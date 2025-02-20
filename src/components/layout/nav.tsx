@@ -10,7 +10,7 @@ type TOC = {
 
 export const Nav = ({ toc }: { toc: TOC[] }) => {
   return (
-    <nav className="w-[192px] flex flex-col gap-4 p-2 sm:sticky sm:top-20 md:w-full">
+    <nav className="w-full sm:w-[192px] flex flex-col gap-4 p-2 sm:sticky sm:top-20">
       <Link
         href="/"
         className="flex items-center gap-2 cursor-pointer transition-colors hover:text-gray-500"
