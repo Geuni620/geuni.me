@@ -39,7 +39,7 @@ export const SandpackWrapper: React.FC<SandpackWrapperProps> = ({
   }, [children]);
 
   return (
-    <div className="relative lg:-mx-20">
+    <div className="relative lg:-mx-20 xl:-mx-24">
       <Sandpack
         theme={githubLight}
         template="react-ts"

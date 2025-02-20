@@ -36,7 +36,7 @@ export default async function Page({
   const readingMinutes = Math.ceil(readingTime(content).minutes);
 
   return (
-    <section className="sm:grid sm:grid-cols-[8rem_640px_0.5rem] lg:grid-cols-[192px_640px_192px]">
+    <section className="sm:grid sm:grid-cols-[8rem_640px_0.5rem] lg:grid-cols-[192px_640px_192px] xl:mx-auto xl:w-[1024px]">
       <div>
         <Nav toc={toc} />
       </div>
