@@ -18,7 +18,7 @@ export const Nav = ({ toc }: { toc: TOC[] }) => {
         <Undo2 className="w-5 h-5 transition-colors duration-200" />
         <span className="transition-colors duration-200">Back</span>
       </Link>
-      <div className="hidden">
+      <div className="hidden lg:block">
         <TOC toc={toc} />
       </div>
     </nav>
