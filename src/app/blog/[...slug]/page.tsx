@@ -36,12 +36,12 @@ export default async function Page({
   const readingMinutes = Math.ceil(readingTime(content).minutes);
 
   return (
-    <section className="grid mx-auto w-[1072px] grid-cols-[192px_720px_192px] justify-center">
+    <section className="sm:grid sm:grid-cols-[8rem_640px_0.5rem] md:grid-cols-[] lg:grid-cols-[192px_640px_192px]">
       <div>
         <Nav toc={toc} />
       </div>
 
-      <article className="prose prose-pre:bg-pre-light mx-auto">
+      <article className="w-full p-2 prose prose-pre:bg-pre-light mx-auto">
         <PostHeader
           title={frontmatter.title}
           date={frontmatter.date}
@@ -50,7 +50,7 @@ export default async function Page({
         <MDXComponent />
       </article>
 
-      <div />
+      <div className="hidden sm:block" />
     </section>
   );
 }

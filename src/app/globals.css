@@ -101,7 +101,7 @@ body {
 }
 
 .main {
-  @apply flex-1 py-32;
+  @apply flex-1 py-20 sm:py-20;
 }
 
 .animate {

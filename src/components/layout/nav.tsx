@@ -10,7 +10,7 @@ type TOC = {
 
 export const Nav = ({ toc }: { toc: TOC[] }) => {
   return (
-    <nav className="fixed top-25 w-[192px] flex flex-col gap-4">
+    <nav className="w-[192px] flex flex-col gap-4 p-2 sm:sticky sm:top-20 md:w-full">
       <Link
         href="/"
         className="flex items-center gap-2 cursor-pointer transition-colors hover:text-gray-500"
@@ -18,7 +18,7 @@ export const Nav = ({ toc }: { toc: TOC[] }) => {
         <Undo2 className="w-5 h-5 transition-colors duration-200" />
         <span className="transition-colors duration-200">Back</span>
       </Link>
-      <div>
+      <div className="hidden">
         <TOC toc={toc} />
       </div>
     </nav>
