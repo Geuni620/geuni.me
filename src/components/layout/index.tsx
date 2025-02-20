@@ -4,7 +4,7 @@ export const Container = ({ children }: { children: React.ReactNode }) => {
 
 export const SideNote = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="hidden lg:block lg:absolute mt-1 left-[calc(50vw+320px)] text-sm text-gray-400">
+    <div className="hidden lg:block absolute mt-1 left-[calc(50vw+320px)] text-sm text-gray-400">
       {children}
     </div>
   );
