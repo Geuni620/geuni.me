@@ -15,6 +15,13 @@ export const generateMetadata = async ({
 }) => {
   const { slug } = await params;
   const { frontmatter } = await import(`@/content/${slug.join("/")}.mdx`);
+  const postImageUrl = `${CONFIG.site}/blog/${slug
+    .slice(0, 3)
+    .join("/")}/img.webp`;
+  const defaultImageUrl = `${CONFIG.site}/opengraph-image.png`;
+  const imageExists = await fetch(postImageUrl)
+    .then((res) => res.status === 200)
+    .catch(() => false);
 
   return {
     title: frontmatter.title,
@@ -22,11 +29,13 @@ export const generateMetadata = async ({
     openGraph: {
       title: frontmatter.title,
       description: frontmatter.summary,
-      url: `${CONFIG.site}/blog/${slug.join("/")}`,
-
+      url: `${CONFIG.site}/blog/${slug.slice(0, 4).join("/")}`,
       images: [
-        `${CONFIG.site}/blog/${slug.join("/")}`,
-        `${CONFIG.site}/opengraph.png`,
+        {
+          url: imageExists ? postImageUrl : defaultImageUrl,
+          width: 1200,
+          height: 630,
+        },
       ],
     },
   };
@@ -46,7 +55,6 @@ export default async function Page({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-
   /**
    * @description
    * remark를 통해 이미지 경로를 절대 경로로 변경시키고 싶었지만, 실패..
