@@ -8,7 +8,9 @@
     "prebuild": "node scripts/pre-build.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "predeploy": "vercel deploy",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",
