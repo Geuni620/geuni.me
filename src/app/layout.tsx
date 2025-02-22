@@ -4,6 +4,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import { Geist, Geist_Mono } from "next/font/google";
+import { CONFIG } from "@/constants/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,8 +23,15 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "geuni.me",
-  description: "geuni.me",
+  metadataBase: new URL(CONFIG.site),
+  title: {
+    default: CONFIG.title,
+    template: "%s | geuni",
+  },
+  description: CONFIG.description,
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({
@@ -38,7 +46,7 @@ export default function RootLayout({
       >
         <Header />
         <main className="main">{children}</main>
-        <GoogleAnalytics gaId="G-BDWWNXR6R2" />
+        <GoogleAnalytics gaId={CONFIG.gtag} />
       </body>
     </html>
   );

@@ -4,8 +4,28 @@ import { PostHeader } from "@/components/post-header";
 import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
 import { Nav } from "@/components/layout/nav";
+import { CONFIG } from "@/constants/config";
 
 export const dynamicParams = false;
+
+export const generateMetadata = async ({
+  params,
+}: {
+  params: Promise<{ slug: string[] }>;
+}) => {
+  const { slug } = await params;
+  const { frontmatter } = await import(`@/content/${slug.join("/")}.mdx`);
+
+  return {
+    title: frontmatter.title,
+    description: frontmatter.description,
+    openGraph: {
+      title: frontmatter.title,
+      description: frontmatter.description,
+      url: `${CONFIG.site}/blog/${slug.join("/")}`,
+    },
+  };
+};
 
 export const generateStaticParams = async () => {
   const posts = await getPostList();
