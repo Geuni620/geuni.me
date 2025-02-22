@@ -18,11 +18,16 @@ export const generateMetadata = async ({
 
   return {
     title: frontmatter.title,
-    description: frontmatter.description,
+    description: frontmatter.summary,
     openGraph: {
       title: frontmatter.title,
-      description: frontmatter.description,
+      description: frontmatter.summary,
       url: `${CONFIG.site}/blog/${slug.join("/")}`,
+
+      images: [
+        `${CONFIG.site}/blog/${slug.join("/")}`,
+        `${CONFIG.site}/opengraph.png`,
+      ],
     },
   };
 };
