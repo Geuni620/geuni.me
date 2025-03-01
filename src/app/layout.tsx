@@ -32,6 +32,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  verification: {
+    google: CONFIG.verification.google,
+  },
 };
 
 export default function RootLayout({

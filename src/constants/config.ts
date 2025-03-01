@@ -7,4 +7,7 @@ export const CONFIG = {
   title: "geuni.me",
   description: "주로 저의 생각을 정리합니다.",
   gtag: "G-BDWWNXR6R2",
+  verification: {
+    google: "0HLVI8VLYfYvYU57EDLthDEu4lQmjfedLM0i9f2nWeA",
+  },
 } as const;
