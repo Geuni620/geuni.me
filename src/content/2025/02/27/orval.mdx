@@ -174,3 +174,108 @@ null로 잘 변경되었다.
 ---
 
 ### custom fetch
+
+custom fetch를 사용하고 싶다면 `mutator`를 이용하면 된다.
+
+```js {21-25}
+// orval.config.ts
+import type { GeneratorVerbOptions } from "@orval/core";
+import { defineConfig } from "orval";
+
+export default defineConfig({
+  petstore: {
+    output: {
+      mode: "tags-split", // split
+      target: "./src/api/petstore.ts",
+      schemas: "./src/api/models",
+      client: "fetch",
+      override: {
+        transformer: (verb: GeneratorVerbOptions): GeneratorVerbOptions => {
+          if (verb.response?.definition.errors === "void") {
+            verb.response.definition.errors = "null";
+          }
+
+          return verb;
+        },
+
+        // here! 🙋‍♂️
+        mutator: {
+          path: "./src/api/http-client.ts",
+          name: "customFetch",
+        },
+      },
+    },
+    input: {
+      target: "./petstore.yaml",
+
+      filters: {
+        tags: [/store/],
+      },
+    },
+  },
+});
+```
+
+참고로 mutator의 **name은 해당 경로에 포함된 함수의 명칭과 일치**해야한다.
+[공식문서](https://github.com/orval-labs/orval/blob/master/samples/next-app-with-fetch/custom-fetch.ts)에서 제공하는 방법대로 반영했을 때 customFetch를 생성할 수있다.
+
+하지만 나의 경우엔, httpClient를 다른 방법으로 사용하고 있다. 🥲
+따로 제공해주는 방법은 없는 듯하고, wrapper를 하나 두어서 이를 해결할 수 있다.
+
+```js
+// http-client.ts
+import { createUrl } from "./create-url";
+
+export const httpClient = {
+  get: async ({ url, options }: GetRequest): Promise<Response> => {
+    const resolvedUrl = createUrl(url);
+    const token = localStorage.getItem("AccessToken");
+    const headers = {
+      ...(options?.headers || {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+
+    const response = await fetch(resolvedUrl, {
+      ...options,
+      method: "GET",
+      headers,
+    });
+
+    return await checkResponse(response);
+  },
+  // ..
+};
+```
+
+```js
+// customHttpClient.ts
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export const customHttpClient = async <T>(
+  url: string,
+  options: RequestInit & { method: HttpMethod },
+): Promise<T> => {
+  const { method, body, ...restOptions } = options;
+  const lowerMethod = method.toLowerCase() as Lowercase<HttpMethod>;
+
+  const args =
+    body !== undefined
+      ? { url, body, options: restOptions }
+      : { url, options: restOptions };
+
+  return httpClient[lowerMethod](args).then(async (response) => {
+    const status = response.status;
+
+    const text = [204, 205, 304].includes(status)
+      ? null
+      : await response.text();
+
+    const data: T = text ? JSON.parse(text) : ({} as T);
+    return data;
+  });
+};
+```
+
+---
+
+###
