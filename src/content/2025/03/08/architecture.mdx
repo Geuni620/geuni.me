@@ -1,0 +1,231 @@
+---
+date: "2025-03-08"
+title: "CRA에서 Vite까지"
+category: ["개발"]
+summary: "CRA에서 Vite까지"
+---
+
+벌써 현재 회사에 입사한 지 1년이 넘었다.  
+작년 2월을 기점으로 1년하고도 한 달이라는 시간이 지났다.
+
+1년이 조금 넘는 시간동안 팀 내 유일한 프론트엔드 개발자로 일하고 있다.  
+이번 글에서는 1년 전 현 회사에 입사하고 난 뒤 처음 소스코드를 보면서 세웠던 청사진을 1년이 조금 지난 현 시점에 점검해보고자 한다.
+
+```json
+{
+  //...
+  "dependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.14.9",
+    "@babel/plugin-transform-react-jsx-self": "^7.14.9",
+    "@babel/runtime": "^7.15.4",
+    "@emotion/react": "^11.9.3",
+    "@hookform/resolvers": "^2.9.11",
+    "@testing-library/jest-dom": "^5.14.1",
+    "axios": "^0.21.4",
+    "babel-loader": "8.0.6",
+    "base-64": "^1.0.0",
+    "chart.js": "^2.8.0",
+    "chartist": "^0.11.4",
+    "classnames": "^2.3.1",
+    "date-fns": "^2.29.1",
+    "feather-icons": "^4.24.1",
+    "file-saver": "^2.0.5",
+    "firebase": "^7.6.0",
+    "jest-dom": "^4.0.0",
+    "jquery": "^3.6.0",
+    "json-loader": "^0.5.7",
+    "lodash": "^4.17.21",
+    "moment": "^2.24.0",
+    "qrcode.react": "^3.1.0",
+    "qs": "^6.10.3",
+    "react": "^16.10.2",
+    "react-barcode": "^1.4.0",
+    "react-big-calendar": "^0.22.1",
+    "react-bootstrap": "^1.0.0-beta.12",
+    "react-bootstrap-sweetalert": "^4.4.1",
+    "react-bootstrap-typeahead": "^3.4.7",
+    "react-chartjs-2": "^2.8.0",
+    "react-ckeditor-component": "^1.1.0",
+    "react-datepicker": "^2.9.6",
+    "react-daum-postcode": "^2.0.6",
+    "react-dom": "^16.10.2",
+    "react-dropzone": "^11.3.4",
+    "react-feather": "^2.0.3",
+    "react-hook-form": "^7.43.1",
+    "react-qr-code": "^2.0.7",
+    "react-query": "^3.39.3",
+    "react-redux": "^7.2.4",
+    "react-router": "^5.1.2",
+    "react-router-dom": "^5.1.1",
+    "react-router-scroll-4": "^1.0.0-beta.2",
+    "react-scripts": "3.1.2",
+    "react-scrollbar": "^0.5.6",
+    "react-table": "^6.10.3",
+    "react-tabs": "^3.0.0",
+    "react-testing-library": "^8.0.1",
+    "react-to-print": "^2.14.15",
+    "react-toastify": "^5.4.0",
+    "reactour": "^1.15.3",
+    "reactstrap": "^8.0.1",
+    "redux": "^4.1.1",
+    "redux-logger": "^3.0.6",
+    "redux-persist": "^6.0.0",
+    "redux-thunk": "^2.3.0",
+    "styled-components": "^5.3.5",
+    "typescript": "^4.3.3",
+    "use-sound": "^4.0.1",
+    "yup": "^1.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "jest ./test/*",
+    "eject": "react-scripts eject",
+    "storybook": "start-storybook -p 6006 -s public"
+  },
+  "eslintConfig": {
+    "extends": "react-app",
+    "plugins": ["jsx-a11y"],
+    "rules": {
+      "no-whitespace-before-property": "off"
+    },
+    "overrides": [
+      {
+        "files": ["*-index.js"],
+        "rules": {
+          "no-unused-expressions": "off"
+        }
+      },
+      {
+        "files": ["**/*.stories.*"],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
+    ],
+    "reportUnusedDisableDirectives": true,
+    "noInlineConfig": true
+  },
+  //...
+  "devDependencies": {
+    "@babel/core": "^7.15.0",
+    "@babel/plugin-transform-runtime": "^7.15.0",
+    "@babel/preset-env": "^7.15.0",
+    "@storybook/addon-actions": "^6.4.0-alpha.28",
+    "@storybook/addon-essentials": "^6.4.19",
+    "@storybook/addon-links": "^6.4.0-alpha.28",
+    "@storybook/node-logger": "^6.4.0-alpha.28",
+    "@storybook/preset-create-react-app": "^3.2.0",
+    "@storybook/react": "^6.4.19",
+    "@testing-library/react": "^12.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.27.0",
+    "@typescript-eslint/parser": "^4.27.0",
+    "babel-plugin-styled-components": "^2.0.7",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-typescript": "^12.3.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.24.0",
+    "jest": "^24.9.0",
+    "prettier": "^2.3.1",
+    "regenerator-runtime": "^0.13.9",
+    "sass": "^1.49.9",
+    "webpack": "4.40.2"
+  }
+}
+```
+
+내가 입사할 당시의 `package.json`은 다음과 같았다.  
+소스코드를 처음 보자마자 가장 눈에 띄었던 점은, 타입스크립트가 없다는 점이었다.  
+모든 소스코드가 자바스크립트로 되어있었다.
+
+당시 기억을 떠올려보면, 프로덕트가 불안정해보였다. 내가 작성한 코드에 자신감이 붙을 수 없는 구조였다. 그러면서 나는 이 회사에서 나의 성장포인트를 크게 세 가지 정했다.
+
+> 1. 타입스크립트
+> 2. 린트
+> 3. 테스트코드
+
+그리고 가장 먼저, `2. 린트`를 설정했다.
+
+### 린트
+
+[프론트 개발환경 세팅을 위한 eslint, prettier, tsconfig를 알아보자!](https://geuni620.github.io/blog/2023/7/1/tsconfig-eslint-prettier/)
+
+현 회사로 이직하기 전 회사에서 썼던 글이다.  
+이 글을 참고해서 eslint, prettier, tsconfig를 설정했다.
+
+package.json에 존재하는 eslint 설정을 따로 파일을 만들어서 관리하려고 했다.  
+크게 고민했던 점은 이 모든 설정은 typescript를 기준으로 반영했다는 점이다.
+
+> 자바스크립트로 되어있던 프로젝트인데 타입스크립트에만 적용했다고 린트를 적용했다고?
+
+당시의 프로덕트는 container, presenter 패턴으로 사용되고 있었다.  
+즉, container에는 비즈니스로직을, presenter에는 뷰(view)로직이 작성되어있었다.  
+**문제는 모든 로직이 이 두 파일에만 작성되어있다는 점이다.**
+
+예를 들어 특정 도메인 페이지를 살펴보면, 비즈니스 로직은 container 컴포넌트에 모두 작성되어있었다.
+뷰 로직은 presenter 컴포넌트에 모두 작성되어있었다.
+
+즉, 기본 useEffect가 3번 이상 호출되고, 1000~2000줄 정도의 거대한 컴포넌트로 작성되어있었다.
+
+여기서 eslint를 돌려버리면, 모든 변경사항의 커밋히스토리 기록이 나를 기반으로 작성되어버린다.
+즉, 커밋 히스토리를 파악하기 위해 git len으로 파악하려고 하면, 여러 번 뒤로 가기를 눌러가면서 커밋을 확인해야한다. 당시의 나는 그러고 싶지 않았다.
+프로덕트의 대한 이해도 부족한데, 히스토리 커밋까지 나를 기반으로 덮혀버리는 걸 원하지 않았다.
+
+그래서 최소한의 규칙으로 eslint 내 overrides를 통해 typescript에만 적용했다.
+
+```json
+{
+  //...
+
+  /** 파일별로 ESLint 규칙을 무시하고 싶을 때 사용*/
+  "overrides": [
+    {
+      "files": "**/*.+(ts|tsx)"
+      //...
+    }
+  ]
+  //...
+}
+```
+
+<br />
+
+### 테스트코드
+
+> 최소한의 unit test 작성하기
+
+타입도 없는데 심지어 테스트코드도 없다. 작은 수정사항 하나를 운영에 배포하는 것도 겁이 났다. 퇴근 후 슬랙 알람에 내 이름이 태그되는게 두려웠다.
+그래서 jest 기반으로 unit test(이하 유닛테스트)라도 작성하라고 했다.
+
+비슷한 시기에 프로젝트에 참여하게 되었다. 프로젝트는 atomic design pattern(이하 아토믹패턴) 기반으로 작성되어있었다.  
+새롭게 컴포넌트를 만들 수 없으니, 최대한 기존 컴포넌트를 사용하려고 했지만 그러지 못했다.
+
+아토믹패턴으로 작성된 컴포넌트 내부에는 useEffect 난무하고 있었다. onChange, onClick 이벤트도 모두 useEffect로 setState를 하고 있었다.  
+이때 내가 리액트에 대한 기본 개념이 부족하다는 생각도 들었다. 한 날은 동료가 의도한대로 동작하지 않는 사례를 보여주면서 디버깅을 부탁했다.
+해당 부분을 살펴보던 중, 분명.. 브라우저 렌더링 이후에 해당 이벤트는 실행되지 않아야하는데, onChange가 실행되는 사례를 발견했다.
+
+리액트 자체가 이렇게 동작하는건지, 아니면 버전이 18버전과 다르게 16버전에서는 이렇게 동작했던건지.. 등등 기존에 내가 알고있던 개념이 명확하지 않으니 뒤섞이는 기분이었다.  
+해당 아토믹패턴 기반으로 작성된 atom 컴포넌트 내부코드를 살펴보고, 그제서야 모든 근원이 useEffect 때문이었다는 걸 알았다.
+
+입사하고 한 달 뒤쯤 첫 프로젝트를 할당받았다. 여유롭진 않았지만 주말에 시간을 내어 testing-library를 세팅했다. WMS 스쿼드 특성 상 어드민 성향이 강하다보니 새롭게 컴포넌트르 만들 일을 잘 없었다. 기존의 컴포넌트를 잘 사용하면 문제 없었다.
+
+<br />
+
+당시에 왜 그랬지는지 모르겠지만 당시의 내 눈에 자바스크립트 자체가 문제였다.  
+그래서 기존 외주에서부터 개발되었던 atom 컴포넌트를 모두 shared폴더 내 타입스크립트 기반으로 재작성했다.  
+UI는 최대한 유사하게 유지하되, 비스니스로직에 포함된 불필요한 Effect는 최대한 제거하고, 이벤트 기반으로 재 설계했다.
+
+참고로 UI는 scss를 사용하고 있었는데, 재작성된 컴포넌트는, css module을 택했다.
+
+사실 당시에 tailwind를 고려했다. 어드민 서비스이다보니, tailwind로 유틸리티하게 스타일을 입히면 생산성이 좋아보였기 때문이다.  
+하지만, 이 모든 계획은 bootstrap 기반 UI 컴포넌트에 산산히 부숴졌다.  
+bootstrap 기반 reactstrap에는 왜 이렇게... important!가 많은 건지.. 그리고 심지어 scss는 왜 전역으올 관리되어야하는건지...
+
+그래서 scss 기반의 전역으로 관리되는 stypes를 모두 css modules로 관리하거나, css modules까지 필요하지 않다면, inline-styles를 사용했다.  
+물론 좋지 않은 방법이지만, 당시의 프로덕트 특성상, scss를 추가하기보단 추후에 변경하더라도 inline-styles가 좋은 선택지라고 생각되었다.  
+심지어 styles 선택에 따른 우선순위도 높으니 말이다.
+
+<br />
