@@ -2,13 +2,18 @@ import { Container } from "@/components/layout";
 import { getPostByYear } from "@/utils/getPost";
 import Link from "next/link";
 import dayjs from "dayjs";
+import { Checkbox } from "./checkbox";
 
 export default async function Home() {
   const postsByYear = await getPostByYear();
   const years = Object.keys(postsByYear).sort((a, b) => b.localeCompare(a));
 
+  console.log("postsByYear", postsByYear);
+  console.log("years", years);
+
   return (
     <Container>
+      <Checkbox />
       {years.map((year) => (
         <div
           key={year}
