@@ -1,0 +1,67 @@
+---
+date: "2025-03-22"
+title: "버튼 포커스 시 Border로 인한 레이아웃 시프트(Layout Shift) 방지하기"
+category: ["개발"]
+summary: "버튼 Border 2px 이상 사용 시 레이아웃 시프트 방지하기"
+short: true
+---
+
+import {
+  Button,
+  BoxShadowButton,
+  NegativeMarginButton,
+  OutlineButton,
+} from "./button";
+
+버튼 컴포넌트를 focus(이하 포커스)했을 때, border를 통해 포커스 되었음을 사용자가 인지할 수 있게 만들었다. 이때 border의 두께가 2px 이상일 경우, 다음과 같은 [Layout Shift](https://web.dev/articles/cls?hl=ko)가 발생한다.
+
+<Button />
+
+어떻게 해결할 수 있을까?
+
+---
+
+### margin
+
+<NegativeMarginButton />
+
+먼저 focus 되었을 때 border 1px일 경우, shift가 발생하지 않는다.  
+border가 2px 일 경우, margin를 -1px로 설정하여 레이아웃 시프트를 방지할 수 있다.
+
+즉, border의 두께만큼 주변의 레이아웃 변경을 margin으로 상쇄시키는 것이다.  
+border가 4px일 경우, margin을 -3px로 설정하여 레이아웃 시프트를 방지할 수 있다.
+
+---
+
+### box-shadow
+
+<BoxShadowButton />
+
+box-shadow를 통해
+
+---
+
+### outline
+
+<OutlineButton />
+
+outline을 통해 버튼의 높이를 조정하여 레이아웃 시프트를 방지할 수 있다.
+
+<br />
+
+---
+
+### 마무리
+
+- outline, box-shadow는 border width를 사용했을 때보다 얇은 두께가 반영된다.
+  - 나의 경우엔 border-width가 피그마에서 계산된 값이 반영되도록 하고 싶었고, shift는 방지하고 싶었기에 margin을 사용했다.
+- tailwind에서 outline과 box-shadow는 각각 [outline](https://v3.tailwindcss.com/docs/outline-width), [ring](https://v3.tailwindcss.com/docs/ring-width)으로 제공된다.
+- radix 기준으로는 focus-visible 속성을 통해 포커스 되었을 경우, [outline](https://github.com/radix-ui/themes/blob/2a0e253b713bfb8b3e4bcb6cca946f642b7ffd5d/packages/radix-ui-themes/src/components/_internal/base-button.css#L166-L168)을 사용한다.
+
+<br />
+
+### 참고자료
+
+[레이아웃 변경 횟수(CLS)](https://web.dev/articles/cls?hl=ko)  
+[how to prevent shifting when changing border width](https://stackoverflow.com/questions/19248985/how-to-prevent-shifting-when-changing-border-width)  
+[What's the difference between outline and ring in tailwind](https://stackoverflow.com/questions/75649221/whats-the-difference-between-outline-and-ring-in-tailwind)
