@@ -62,7 +62,7 @@ export default async function Home(props: {
                   <div className="flex items-center gap-2 relative">
                     {short && (
                       <div className="absolute left-[-3.125rem] text-xs text-gray-500 p-1 bg-[var(--short-bg)] rounded-md transition-colors group-hover:text-gray-900 animate-bounce">
-                        show!
+                        short!
                       </div>
                     )}
                     <p className="text-base text-gray-500 transition-colors group-hover:text-gray-900">
