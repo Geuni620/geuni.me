@@ -41,9 +41,12 @@ export default async function Home(props: {
               return (
                 <Link
                   key={`${year}-${slug}-${index}`}
-                  href={`/blog/${year}${month ? `/${month}` : ""}${
-                    day ? `/${day}` : ""
-                  }/${slug}`}
+                  href={{
+                    pathname: `/blog/${year}${month ? `/${month}` : ""}${
+                      day ? `/${day}` : ""
+                    }/${slug}`,
+                    query: { showShort: searchParams.showShort },
+                  }}
                   className={`group grid grid-cols-[100px_1fr_100px] gap-4 items-center ${
                     short ? "animate-fadeIn" : ""
                   }`}

@@ -51,10 +51,14 @@ export const generateStaticParams = async () => {
 
 export default async function Page({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string[] }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { slug } = await params;
+  const resolvedSearchParams = await searchParams;
+  const showShort = resolvedSearchParams?.showShort === "true";
   /**
    * @description
    * remark를 통해 이미지 경로를 절대 경로로 변경시키고 싶었지만, 실패..
@@ -71,7 +75,7 @@ export default async function Page({
   return (
     <section className="mx-auto w-full sm:grid sm:grid-cols-[8rem_640px_0.5rem] md:w-[768px] lg:w-[1024px] lg:grid-cols-[192px_640px_192px]">
       <div>
-        <Nav toc={toc} />
+        <Nav toc={toc} showShort={showShort} />
       </div>
 
       <article className="w-full p-2 prose prose-pre:bg-pre-light mx-auto">
