@@ -9,7 +9,6 @@ body {
 @layer base {
   :root {
     --bg-light: 0 0% 95%;
-
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -46,6 +45,8 @@ body {
     --sh-keyword: #d53f8c;
     --sh-comment: #718096;
     --sh-highlight: rgba(56, 189, 248, 0.12);
+
+    --short-bg: #a1a1aa26;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -112,7 +113,7 @@ body {
 /**
  * posts-group 내부에 a 요소가 hover 상태이면 .year-label에 스타일 적용
  */
-.posts-group:hover .year-label,
-.posts-group:has(a:hover) .year-label {
-  @apply text-gray-900 dark:text-white;
+.posts-group:has(a:hover) .year-label,
+.posts-group:has(a:hover) .short-label {
+  @apply text-gray-900;
 }

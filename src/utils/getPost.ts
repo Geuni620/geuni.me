@@ -13,6 +13,7 @@ interface PostFrontmatter {
   summary: string;
   thumbnail: string;
   description: string;
+  short: boolean | undefined;
 }
 
 interface Post extends PostFrontmatter {

@@ -1,9 +1,21 @@
 "use client";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { useState } from "react";
+const SHOW_SHORT = "showShort";
 
 export const Checkbox = () => {
-  const [isChecked, setIsChecked] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isChecked = searchParams.get(SHOW_SHORT) === "true";
+
+  const onCheckboxChange = () => {
+    const newValue = !isChecked;
+    const params = new URLSearchParams(searchParams);
+
+    params.set(SHOW_SHORT, newValue.toString());
+
+    router.push(`?${params.toString()}`);
+  };
 
   return (
     <div className="flex items-center justify-end gap-1 mb-2">
@@ -12,7 +24,7 @@ export const Checkbox = () => {
           type="checkbox"
           id="short-posts-toggle"
           checked={isChecked}
-          onChange={() => setIsChecked(!isChecked)}
+          onChange={onCheckboxChange}
           className="appearance-none w-4 h-4 border border-gray-300 rounded-md cursor-pointer checked:bg-gray-100 focus:outline-none"
         />
         {isChecked && (
