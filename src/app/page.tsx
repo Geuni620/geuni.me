@@ -14,7 +14,6 @@ export default async function Home(props: {
   const searchParams = await props.searchParams;
   const showShort = searchParams?.showShort === "true";
   const postsByYear = await getPostByYear();
-
   const filteredPostsByYear = Object.fromEntries(
     Object.entries(postsByYear).map(([year, posts]) => [
       year,
@@ -24,10 +23,13 @@ export default async function Home(props: {
   const years = Object.keys(filteredPostsByYear).sort((a, b) =>
     b.localeCompare(a)
   );
+  const isShortContent = Object.values(postsByYear).some((posts) =>
+    posts.some((post) => post.short)
+  );
 
   return (
     <Container>
-      <Checkbox />
+      {isShortContent && <Checkbox />}
       {years.map((year) => (
         <div
           key={year}
@@ -42,7 +44,9 @@ export default async function Home(props: {
                   href={`/blog/${year}${month ? `/${month}` : ""}${
                     day ? `/${day}` : ""
                   }/${slug}`}
-                  className="group grid grid-cols-[100px_1fr_100px] gap-4 items-center"
+                  className={`group grid grid-cols-[100px_1fr_100px] gap-4 items-center ${
+                    short ? "animate-fadeIn" : ""
+                  }`}
                 >
                   <div
                     className={`text-sm transition-colors ${
@@ -54,7 +58,7 @@ export default async function Home(props: {
 
                   <div className="flex items-center gap-2 relative">
                     {short && (
-                      <div className="absolute left-[-3.125rem] text-xs text-gray-500 p-1 bg-[var(--short-bg)] rounded-md transition-colors group-hover:text-gray-900">
+                      <div className="absolute left-[-3.125rem] text-xs text-gray-500 p-1 bg-[var(--short-bg)] rounded-md transition-colors group-hover:text-gray-900 animate-bounce">
                         show!
                       </div>
                     )}
