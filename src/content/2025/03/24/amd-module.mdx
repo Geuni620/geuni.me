@@ -1,0 +1,86 @@
+---
+date: "2025-03-29"
+title: "Vite에서 AMD 모듈 사용하기"
+category: ["개발"]
+summary: "Vite에서 jquery-ui의 AMD 모듈을 사용하는 방법"
+short: true
+---
+
+최근 CRA가 [deprecated](https://react.dev/blog/2025/02/14/sunsetting-create-react-app)되었다.  
+나는 프로덕트를 Vite로 전환하는 도중 이 소식을 들었다.
+
+현재는 Vite로 전환 및 디자인시스템 1차 적용을 완료했다.  
+과정에서 한 가지 기록하고 싶은 내용이 있어서 적어본다.
+
+우리 프로덕트의 Grid 라이브러리는 AUI-Grid라는 유료 라이브러리를 사용 중이다.  
+AUI-Grid는 내부적으로 date-picker를 사용하는데, CRA에서 잘 동작하던 date-picker가 Vite로 전환한 뒤 동작하지 않았다.  
+명확히 말하자면 로컬환경에서는 잘 동작하지만, 배포를 했을 때 동작하지 않는 것이다.
+
+### 자바스크립트의 모듈
+
+이 이슈가 발생하기 전까지 나는 Javascript의 모듈은 크게 `commonjs`와 `esm` 두 가지만 존재한다고 생각했다.  
+date-picker는 내부적으로 jquery-ui 라이브러리에 의존적인데, 이 라이브러리의 모듈은 `AMD 모듈`로 작성되어 있다.
+
+### AMD 모듈
+
+AMD 모듈은 비동기 모듈 정의(Asynchronous Module Definition)을 의미한다.  
+이 모듈 시스템은 브라우저에서 비동기적으로 모듈을 로드하고 실행하는 방식을 제공한다.
+
+즉 필요한 모듈을 네트워크를 통해 내려받을 수 있도록 하는 것이다.
+
+```html
+<!-- jquery-ui css -->
+<link
+  rel="stylesheet"
+  href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
+/>
+
+<!-- jquery-ui js -->
+<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+```
+
+### Vite only apply to esm
+
+[Vite를 사용해야 하는 이유](https://ko.vite.dev/guide/why#why-vite)
+
+CRA는 웹팩을 기반으로 하며, 다양한 모듈 시스템(commonjs, esm, amd)을 지원한다.  
+웹팩은 빌드 과정에서 모든 모듈을 분석하고 의존성을 해결하여 하나의 번들로 만든다.  
+즉, 웹팩은 번들 내에서 올바른 로드 순서를 보장한다.
+
+이 때문에, CRA에서는 jquery-ui의 date-picker가 정상적으로 동작한다.
+
+<br />
+
+Vite는 ESM 모듈을 직접 사용하며 AMD 모듈의 자동 변환 기능이 웹팩보다 제한적이다.  
+따라서 jquery-ui와 같은 AMD 모듈을 사용할 때는 초기화 로직을 명시적으로 추가해야한다.
+
+이 때문에 아래와 같이 script 초기화 문을 추가해주었다.  
+DOM이 로드된 이후에 실행되도록 하는 것이다.
+
+```html {11-16}
+<!-- jQuery-ui css -->
+<link
+  rel="stylesheet"
+  href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css"
+/>
+
+<!-- jQuery-ui js -->
+<script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+<!-- 모듈 사용 -->
+<script type="module">
+  $(document).ready(function () {
+    $(".datepicker").datepicker();
+  });
+</script>
+```
+
+<br />
+
+### 참고자료
+
+[JavaScript 표준을 위한 움직임: CommonJS와 AMD](https://d2.naver.com/helloworld/12864)  
+[Issues using jQuery UI with Vite #2123](https://github.com/jquery/jquery-ui/issues/2123)  
+[How to use jQuery UI with vite in laravel 9 #9415](https://github.com/vitejs/vite/discussions/9415)
