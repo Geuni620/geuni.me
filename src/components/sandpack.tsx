@@ -1,54 +1,47 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { githubLight } from "@codesandbox/sandpack-themes";
-import { Sandpack } from "@codesandbox/sandpack-react";
+import { Sandpack, type SandpackProps } from "@codesandbox/sandpack-react";
+
+const defaultOptions: SandpackProps["options"] = {
+  /**
+   * @description
+   * https://sandpack.codesandbox.io/docs/getting-started/layout#options
+   */
+  showNavigator: true,
+  showLineNumbers: true,
+  showInlineErrors: true,
+  showConsole: true,
+  wrapContent: true,
+  // editorHeight: 500, // default - 300
+  // editorWidthPercentage: 50, // default - 50
+};
 
 interface SandpackWrapperProps {
-  children: string;
+  files: SandpackProps["files"];
+  template?: SandpackProps["template"];
+  options?: SandpackProps["options"];
 }
 
 export const SandpackWrapper: React.FC<SandpackWrapperProps> = ({
-  children,
+  files,
+  template,
+  options: userOptions,
 }) => {
-  const files = useMemo(() => {
-    return children
-      .split("---")
-      .map((file) => file.trim())
-      .filter(Boolean)
-      .reduce(
-        (acc: Record<string, { code: string }>, file) => {
-          const lines = file.split("\n");
-          if (lines.length === 0) {
-            return acc;
-          }
-
-          // 첫 줄에서 파일명을 추출 (주석 표시 "//" 제거)
-          const fileName = lines[0].replace(/^\/\//, "").trim();
-          const code = lines.slice(1).join("\n").trim();
-
-          if (!fileName) {
-            console.warn(
-              "파일 이름이 누락되었습니다. 첫 줄에 '//파일명' 형식으로 작성해주세요."
-            );
-            return acc;
-          }
-
-          return { ...acc, [fileName]: { code } };
-        },
-        {} as Record<string, { code: string }>
-      );
-  }, [children]);
+  const mergedOptions = useMemo(
+    () => ({
+      ...defaultOptions,
+      ...userOptions,
+    }),
+    [userOptions]
+  );
 
   return (
     <div className="relative lg:-mx-20 xl:-mx-24">
       <Sandpack
-        theme={githubLight}
-        template="react-ts"
         files={files}
-        options={{
-          showLineNumbers: true,
-          showInlineErrors: true,
-          wrapContent: true,
-        }}
+        theme={githubLight}
+        template={template}
+        options={mergedOptions}
       />
     </div>
   );
