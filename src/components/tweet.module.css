@@ -1,0 +1,13 @@
+/**
+ * cc. 
+ * https://react-tweet.vercel.app/#updating-the-theme
+ * https://github.com/vercel/react-tweet/blob/main/packages/react-tweet/src/twitter-theme/theme.css
+ */
+
+.tweet-container :global(.react-tweet-theme) {
+  --tweet-body-font-size: 1rem;
+}
+
+.tweet-container :global(.react-tweet-theme) img {
+  margin: 0;
+}

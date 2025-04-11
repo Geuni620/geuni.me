@@ -5,6 +5,8 @@ category: ["개발"]
 summary: "함정에 빠졌다.."
 ---
 
+import { Tweet } from "@/components/tweet";
+
 ### 문제상황
 
 최근 셀렉트박스의 선택에 따라 다른 데이터를 요청해야하는 경우가 발생했다.  
@@ -77,7 +79,7 @@ if (isSingleData({ items, type })) {
 
 따라서 새 객체 `{ items, type }`이 DataProps 타입으로 받아들여질 수는 있지만, 그 안의 type 속성은 좀 더 넓은 타입 "single" | "group"으로 인식되어, 타입 가드가 의도한 대로 작동하지 않는다.
 
-cc. [Dan Vanderkam on Twitter / X](https://x.com/danvdk/status/1363614288103964672)
+<Tweet id="1363614288103964672" />
 
 ### 해결방법
 
