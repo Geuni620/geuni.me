@@ -5,6 +5,7 @@ import readingTime from "reading-time";
 import { getPostBySlug, getPostList } from "@/utils/getPost";
 import { Nav } from "@/components/layout/nav";
 import { CONFIG } from "@/constants/config";
+import { HeaderLinkWrapper } from "@/components/header-link-wrapper";
 
 export const dynamicParams = false;
 
@@ -78,14 +79,16 @@ export default async function Page({
         <Nav toc={toc} showShort={showShort} />
       </div>
 
-      <article className="w-full p-2 prose prose-pre:bg-pre-light mx-auto">
-        <PostHeader
-          title={frontmatter.title}
-          date={frontmatter.date}
-          readingTime={readingMinutes}
-        />
-        <MDXComponent />
-      </article>
+      <HeaderLinkWrapper>
+        <article className="w-full p-2 prose prose-pre:bg-pre-light mx-auto">
+          <PostHeader
+            title={frontmatter.title}
+            date={frontmatter.date}
+            readingTime={readingMinutes}
+          />
+          <MDXComponent />
+        </article>
+      </HeaderLinkWrapper>
 
       <div className="hidden sm:block" />
     </section>

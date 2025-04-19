@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -47,6 +51,8 @@ body {
     --sh-highlight: rgba(56, 189, 248, 0.12);
 
     --short-bg: #a1a1aa26;
+
+    --scroll-offset: 100px;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -116,4 +122,40 @@ body {
 .posts-group:has(a:hover) .year-label,
 .posts-group:has(a:hover) .short-label {
   @apply text-gray-900;
+}
+
+@layer components {
+  .prose h1[id],
+  .prose h2[id],
+  .prose h3[id],
+  .prose h4[id],
+  .prose h5[id],
+  .prose h6[id] {
+    @apply scroll-mt-[var(--scroll-offset)];
+    @apply hover:cursor-pointer;
+  }
+}
+
+@layer components {
+  .prose h1[id],
+  .prose h2[id],
+  .prose h3[id],
+  .prose h4[id],
+  .prose h5[id],
+  .prose h6[id] {
+    @apply relative scroll-mt-[var(--scroll-offset)] hover:cursor-pointer;
+
+    @apply before:content-['#']
+           before:absolute
+           before:-left-5
+           before:top-1/2
+           before:-translate-y-1/2
+           before:text-xl
+           before:font-bold
+           before:text-primary
+           before:opacity-0
+           before:select-none;
+
+    @apply hover:before:opacity-70;
+  }
 }
