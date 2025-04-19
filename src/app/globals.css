@@ -135,3 +135,27 @@ body {
     @apply hover:cursor-pointer;
   }
 }
+
+@layer components {
+  .prose h1[id],
+  .prose h2[id],
+  .prose h3[id],
+  .prose h4[id],
+  .prose h5[id],
+  .prose h6[id] {
+    @apply relative scroll-mt-[var(--scroll-offset)] hover:cursor-pointer;
+
+    @apply before:content-['#']
+           before:absolute
+           before:-left-5
+           before:top-1/2
+           before:-translate-y-1/2
+           before:text-xl
+           before:font-bold
+           before:text-primary
+           before:opacity-0
+           before:select-none;
+
+    @apply hover:before:opacity-70;
+  }
+}
