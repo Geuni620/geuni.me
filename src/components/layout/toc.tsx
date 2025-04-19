@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface TOC {
   id: string;
@@ -48,28 +49,15 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
             paddingLeft: `${(item.depth - 1) * 8}px`,
           }}
         >
-          <a
+          <Link
             href={`#${item.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              const element = document.getElementById(item.id);
-
-              if (element) {
-                const yOffset = -100;
-                const y =
-                  element.getBoundingClientRect().top +
-                  window.scrollY +
-                  yOffset;
-                window.scrollTo({ top: y, behavior: "smooth" });
-              }
-            }}
             className={cn(
               "hover:text-foreground transition-colors",
               activeId === item.id && "text-foreground"
             )}
           >
             {item.heading}
-          </a>
+          </Link>
         </li>
       ))}
     </ul>
