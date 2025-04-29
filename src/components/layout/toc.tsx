@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 
 interface TOC {
@@ -12,31 +12,38 @@ interface TOC {
 
 export const TOC = ({ toc }: { toc: TOC[] }) => {
   const [activeId, setActiveId] = useState<string>("");
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: "-100px 0px -66%" }
-    );
+  const listRef = (node: HTMLUListElement | null) => {
+    if (node) {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setActiveId(entry.target.id);
+            }
+          });
+        },
+        { rootMargin: "-100px 0px -66%" }
+      );
 
-    toc.forEach((item) => {
-      const element = document.getElementById(item.id);
-      if (element) {
-        observer.observe(element);
-      }
-    });
+      toc.forEach((item) => {
+        const element = document.getElementById(item.id);
+        if (element && observerRef.current) {
+          observerRef.current.observe(element);
+        }
+      });
 
-    return () => observer.disconnect();
-  }, [toc]);
+      return () => {
+        if (observerRef.current) {
+          observerRef.current.disconnect();
+        }
+      };
+    }
+  };
 
   return (
-    <ul className="text-sm pl-1">
+    <ul ref={listRef} className="text-sm pl-1">
       {toc.map((item) => (
         <li
           key={item.id}
