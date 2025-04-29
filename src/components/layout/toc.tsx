@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 interface TOC {
@@ -13,7 +13,7 @@ interface TOC {
 export const TOC = ({ toc }: { toc: TOC[] }) => {
   const [activeId, setActiveId] = useState<string>("");
 
-  const listRef = () => {
+  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -27,21 +27,16 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
 
     toc.forEach((item) => {
       const element = document.getElementById(item.id);
-
-      if (element && observer) {
+      if (element) {
         observer.observe(element);
       }
     });
 
-    return () => {
-      if (observer) {
-        observer.disconnect();
-      }
-    };
-  };
+    return () => observer.disconnect();
+  }, [toc]);
 
   return (
-    <ul ref={listRef} className="text-sm pl-1">
+    <ul className="text-sm pl-1">
       {toc.map((item) => (
         <li
           key={item.id}
