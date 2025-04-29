@@ -1,32 +1,24 @@
 ---
 date: "2025-04-29"
-title: "useEffect와 callbackRef"
+title: "useEffect를 대체하는 방법, callbackRef로 렌더링 최적화하기"
 category: ["개발"]
 summary: "둘은 어덯게 다를까?"
 ---
 
-최근 흥미로운 영상을 하나 접하게 되었다.
+useEffect 대신 callbackRef를 쓰면 어떤 점이 좋아질까?  
+최근 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
+오랫동안 '나중에 보기'에 담아두고 잊고 살다가, 우연한 기회로 꺼내보게 되었다.
 
-[What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)
-
-영상을 간단히 요약하자면, 테이블 컬럼을 리사이즈 할 때, 반복된 리렌더링으로 인해 성능 저하가 발생하는 문제는 state 대신 useRef를 활용해 해결하는 방법이다.  
-과정에서 useEffect와 useLayoutEffect에 대해서도 설명해주지만, 가장 좋은 방법은 callbackRef를 사용하는 것이라고 이야기해준다.
-
-특히, useLayoutEffect를 사용했을 때의 단점에 대해서 이야기해주는데, 이는 컴포넌트가 렌더링 될 때마다 실행되어 불필요한 계산이 발생하고, 클린업 함수와 이펙트 함수의 실행 타이밍을 신경써야하는 복잡성이 있다는 점이다.  
-반면 callbackRef는 DOM요소가 실제로 마운트되거나 변경될 때만 호출되어 더 효율적이고 직관적인 코드를 작성할 수 있다.
+[What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)  
+이 영상은, 반복적인 리렌더링 문제를 state 대신 useRef를 사용해 해결하고, 최종적으로 callbackRef로 최적화하는 과정을 보여준다.
 
 <br />
 
-### refc
+### 적용하기
 
 블로그를 만들면서 다음과 같은 코드를 생산했었다.
 
 ```jsx
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
-
 export const HeaderLinkWrapper = ({
   children,
 }: {
@@ -67,9 +59,65 @@ export const HeaderLinkWrapper = ({
 ```
 
 mdx 파일의 heading 값을 읽어서 클릭했을 때, queryParams에 추가해주는 로직이다.  
-브라우저의 새 창을 열어서 링크를 붙여넣으면 해당 Heading의 위치로 이동해준다.
-
+브라우저의 새 창을 열어서 링크를 붙여넣으면 해당 Heading의 위치로 이동해준다.  
 이는 callbackRef로 변경하기 적합한 코드라고 생각되었다.
+
+여기서 useEffect의 사용사례와 callbackRef의 사용사례가 헷갈릴 수 있다.
+아래는 callbackRef가 아닌 useEffect를 사용하는 것이 더 나은 코드이다.
+
+```tsx
+interface TOC {
+  id: string;
+  heading: string;
+  depth: number;
+}
+
+export const TOC = ({ toc }: { toc: TOC[] }) => {
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-100px 0px -66%" }
+    );
+
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [toc]);
+
+  return (
+    <ul className="text-sm pl-1">
+      {toc.map((item) => (
+        <li
+        //...
+        >
+          <Link
+            href={`#${item.id}`}
+            className={cn(
+              "hover:text-foreground transition-colors",
+              activeId === item.id && "text-foreground"
+            )}
+          >
+            {item.heading}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+};
+```
 
 <br />
 
