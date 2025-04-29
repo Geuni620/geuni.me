@@ -1,0 +1,145 @@
+---
+date: "2025-04-29"
+title: "useEffect와 callbackRef"
+category: ["개발"]
+summary: "둘은 어덯게 다를까?"
+---
+
+최근 흥미로운 영상을 하나 접하게 되었다.
+
+[What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)
+
+영상을 간단히 요약하자면, 테이블 컬럼을 리사이즈 할 때, 반복된 리렌더링으로 인해 성능 저하가 발생하는 문제는 state 대신 useRef를 활용해 해결하는 방법이다.  
+과정에서 useEffect와 useLayoutEffect에 대해서도 설명해주지만, 가장 좋은 방법은 callbackRef를 사용하는 것이라고 이야기해준다.
+
+특히, useLayoutEffect를 사용했을 때의 단점에 대해서 이야기해주는데, 이는 컴포넌트가 렌더링 될 때마다 실행되어 불필요한 계산이 발생하고, 클린업 함수와 이펙트 함수의 실행 타이밍을 신경써야하는 복잡성이 있다는 점이다.  
+반면 callbackRef는 DOM요소가 실제로 마운트되거나 변경될 때만 호출되어 더 효율적이고 직관적인 코드를 작성할 수 있다.
+
+<br />
+
+### refc
+
+블로그를 만들면서 다음과 같은 코드를 생산했었다.
+
+```jsx
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+
+export const HeaderLinkWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const router = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // 클릭된 요소가 H1-H6이고 id 속성이 있으며 contentRef 내부에 있는지 확인
+      if (
+        target.tagName.match(/^H[1-6]$/) &&
+        target.id &&
+        contentRef.current?.contains(target)
+      ) {
+        const hash = `#${target.id}`;
+        router.push(hash);
+      }
+    };
+
+    const container = contentRef.current;
+    if (container) {
+      container.addEventListener("click", handleClick);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener("click", handleClick);
+      }
+    };
+  }, [router]);
+
+  return <div ref={contentRef}>{children}</div>;
+};
+```
+
+mdx 파일의 heading 값을 읽어서 클릭했을 때, queryParams에 추가해주는 로직이다.  
+브라우저의 새 창을 열어서 링크를 붙여넣으면 해당 Heading의 위치로 이동해준다.
+
+이는 callbackRef로 변경하기 적합한 코드라고 생각되었다.
+
+<br />
+
+먼저 useEffect는 브라우저 렌더링 이후에 state를 업데이트 시킨다.  
+이는 리액트와 브라우저가 렌더링을 거쳐왔던 모든 순간들을 지난 뒤, 다시 한번 렌더링을 하게 만드는 요소이다.  
+그래서 많은 사람들이 useEffect를 지양하는 이유이기도 하며 예측하기 어려운 사이드이펙트를 발생시킨다.
+
+<br />
+
+개선하는 도중 위 블로그를 읽게 되었다.
+
+[Ref Callbacks, React 19 and the Compiler](https://tkdodo.eu/blog/ref-callbacks-react-19-and-the-compiler)
+
+> The react docs clearly say that while the cached result will not be arbitrarily thrown away between renders, you should still treat useCallback as a performance optimization only, which means your code should still work if you remove it. It might not work as efficiently as before, but it also shouldn't crash.
+> 리액트 문서에 따르면 캐시된 결과는 렌더링 사이에 임의로 버려지지 않지만, useCallback을 성능 최적화를 위한 도구로만 취급해야 하므로 제거해도 코드가 계속 작동해야 한다고 명시되어 있습니다. 이는 useCallback을 제거하더라도 코드가 여전히 작동해야한다는 것을 의미합니다.
+
+즉 useCallback을 성능최적화를 위한 도구로만 사용해야한다는 점이고, 이를 제거했을 때 성능최적화와 관련되지 않은 동작을 한다면 이는 바르게 사용되지 않는 케이스라고 이야기한다.  
+내가 가진 코드를 한번 개선해보자.
+
+```jsx
+"use client";
+
+import { useRouter } from "next/navigation";
+
+export const HeaderLinkWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const router = useRouter();
+
+  const callbackRef = (node: HTMLDivElement) => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (
+        target.tagName.match(/^H[1-6]$/) &&
+        target.id &&
+        node.contains(target)
+      ) {
+        const hash = `#${target.id}`;
+        router.push(hash);
+      }
+    };
+
+    node.addEventListener("click", handleClick);
+
+    return () => {
+      node.removeEventListener("click", handleClick);
+    };
+  };
+
+  return <div ref={callbackRef}>{children}</div>;
+};
+```
+
+나는 useCallback을 사용하지 않는 방식을 택했다.
+그 이유는 위 코드에서 useCallback을 감싼다고 해서, 디펜던시 의존성에 router를 넣게 되는데, callback으로 감싸나 감싸지 않으나 성능의 최적화와는 무관하다고 생각되었다.  
+즉, useCallback에 의존하지 않는 구조를 만들었다.
+
+또한, react19에서 ref의 cleanup 함수가 추가되었다.
+이는 더이상 useRef가 null인지 검증할 필요가 없어진 것으로 이해된다.
+
+<br />
+
+다음과 같이 코드를 작성한 뒤, 두 영역을 비교해봤을 때 성능상으로 다음과 같은 이 있었다.
+
+사실 위 코드를 봤을 때 dependency 의존성만 다를 뿐 useCallback으로 생성했을 때와 동일하게 동작할 것이라고 생각된다.  
+하지만 리액트의 브라우저 렌더링 과정을 확인해보면, useEffect는 React가 렌더링 되고, 이를 브라우저에 역할을 위임한 뒤, 브라우저의 렌더링까지 완료된 상태에서 useEffect가 동작한다.  
+즉 브라우저 렌더링 이후에 다시 React가 렌더링을 가져가고, 브라우저에게 다시 넘기며 이를 반복하는 구조로 렌더링이 이루어지는 것이다.
+
+하지만 아래와 같이 코드를 변경하면, 브라우저 렌더링이 끝났을 때 화면에 업데이트된 사항을 그대로 노출시킨다.  
+즉 SideEffect를 발생시키지 않는 것이다.
