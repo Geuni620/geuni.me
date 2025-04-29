@@ -1,0 +1,263 @@
+---
+date: "2025-04-30"
+title: "useEffect를 대체하는 방법, callbackRef"
+category: ["개발"]
+summary: "각각의 적용기준이 무엇일까?"
+---
+
+useEffect 대신 callbackRef를 쓰면 어떤 점이 좋아질까?  
+몇 달전 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
+오랫동안 '나중에 보기'에 담아두고 잊고 살다가 우연한 기회로 꺼내보게 되었다.
+
+[What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)  
+이 영상은 반복적인 리렌더링 문제는 state 대신 callbackRef를 사용해 해결한 과정을 보여준다.  
+영상 내용을 토대로 블로그에서 적용했던 코드를 수정해보자.
+
+### callbackRef 대상
+
+블로그에서 useEffect를 사용하는 두 컴포넌트가 있었다.
+
+- **HeadingLinkWrapper**: Heading 클릭 시 URL hash 업데이트 (이하 HeadingLink)
+- **TOC**: 스크롤 시 활성 Heading 감지 (이하 TOC)
+
+이 둘을 모두 callbackRef로 전환해보고, 적합 여부를 판단해보자.
+
+### 전환한 코드 예시
+
+먼저 기존 코드를 살펴보자.
+
+```jsx
+// HeaderLinkWrapper.tsx
+export const HeaderLinkWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const router = useRouter();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      // 클릭된 요소가 H1-H6이고 id 속성이 있으며 contentRef 내부에 있는지 확인
+      if (
+        target.tagName.match(/^H[1-6]$/) &&
+        target.id &&
+        contentRef.current?.contains(target)
+      ) {
+        const hash = `#${target.id}`;
+        router.push(hash);
+      }
+    };
+
+    const container = contentRef.current;
+    if (container) {
+      container.addEventListener("click", handleClick);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener("click", handleClick);
+      }
+    };
+  }, [router]);
+
+  return <div ref={contentRef}>{children}</div>;
+};
+
+// TOC.tsx
+export const TOC = ({ toc }: { toc: TOC[] }) => {
+  const [activeId, setActiveId] = useState<string>("");
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+    );
+
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [toc]);
+
+  return (
+    <ul className="text-sm pl-1">
+      {/* ... */}
+    </ul>
+  );
+};
+```
+
+---
+
+이 두 컴포넌트 모두 callbackRef로 변환 가능하며, 실제로 변경했을 때 정상 동작했다.  
+변경한 코드는 다음과 같다.
+
+```jsx
+// HeaderLinkWrapper.tsx
+export const HeaderLinkWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const router = useRouter();
+
+  const callbackRef = (node: HTMLDivElement) => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (
+        target.tagName.match(/^H[1-6]$/) &&
+        target.id &&
+        node.contains(target)
+      ) {
+        const hash = `#${target.id}`;
+        router.push(hash);
+      }
+    };
+
+    node.addEventListener("click", handleClick);
+    return () => {
+      node.removeEventListener("click", handleClick);
+    };
+  };
+
+  return <div ref={callbackRef}>{children}</div>;
+};
+
+// TOC.tsx
+export const TOC = ({ toc }: { toc: TOC[] }) => {
+  const [activeId, setActiveId] = useState<string>("");
+
+  const listRef = () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+    );
+
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
+
+      if (element && observer) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  };
+
+  return (
+    <ul ref={listRef} className="text-sm pl-1">
+      {/* ... */}
+    </ul>
+  );
+};
+```
+
+---
+
+### callbackRef 적용 판단 기준
+
+결론부터 이야기하자면 나는 `HeadingLink`는 callbackRef로 변경하기 적절하다 판단했고, `TOC`는 적절하지 않다고 판단했다.  
+그 이유는 아래 글을 참고하면 이해할 수 있다.
+
+[Ref Callbacks, React 19 and the Compiler](https://tkdodo.eu/blog/ref-callbacks-react-19-and-the-compiler#ref-callback-or-useeffect)
+
+Tkdodo의 가장 하단에 적힌 'Ref Callback or useEffect?'를 살펴보면, 다음과 같이 적혀있다.
+
+- node에 접근이 필요하다면 ref를 선호
+- node가 필요 없는 side-effect가 있다면 ref에서 처리하지 않음
+
+TOC는 매개변수 node를 추가하는게 불필요하다.  
+`document`를 통해 props로 전달받은 toc의 id를 가지고 element를 추출해서, 이를 observer에 넘긴다.  
+즉, 어디에도 callbackRef로 전달받은 node가 사용되지 않는다. side-effect인 것이다.
+
+그래서 toc는 다음과 같이 유지하기로 했다.
+
+---
+
+### TOC의 최종 코드
+
+```jsx
+"use client";
+
+import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+
+interface TOC {
+  id: string;
+  heading: string;
+  depth: number;
+}
+
+export const TOC = ({ toc }: { toc: TOC[] }) => {
+  const [activeId, setActiveId] = useState < string > "";
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-100px 0px -66%" }
+    );
+
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [toc]);
+
+  return <ul className="text-sm pl-1">{/* ... */}</ul>;
+};
+```
+
+### 번외
+
+**성능차이가 존재할까?**
+
+블로그 기준으론 차이가 없다. (약 0.1ms 차이)  
+하지만 위 영상을 보면 state보다 callbackRef를 사용했을 때 불필요한 리렌더링이 줄고 성능의 이점이 있다고 이야기한다.
+
+<br />
+
+**useCallback이 없네?**
+
+블로그 기준으로 디펜던시가 router인데, useCallback을 사용하지 않아도 router 기준으로 렌더링될 것이다.  
+즉, useCallback은 불필요했다.
+
+<br />
+
+### 참고자료
+
+[What Refs Can Do for You Stephen Cooper](https://gitnation.com/contents/what-refs-can-do-for-you)  
+[Ref Callbacks, React 19 and the Compiler](https://tkdodo.eu/blog/ref-callbacks-react-19-and-the-compiler)  
+[React 19: Cleanup functions for refs](https://react.dev/blog/2024/12/05/react-19#cleanup-functions-for-refs)
