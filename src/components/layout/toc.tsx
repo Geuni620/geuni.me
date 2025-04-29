@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 interface TOC {
@@ -12,34 +12,32 @@ interface TOC {
 
 export const TOC = ({ toc }: { toc: TOC[] }) => {
   const [activeId, setActiveId] = useState<string>("");
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const listRef = (node: HTMLUListElement | null) => {
-    if (node) {
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveId(entry.target.id);
-            }
-          });
-        },
-        { rootMargin: "-100px 0px -66%" }
-      );
+  const listRef = () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-100px 0px -66%" }
+    );
 
-      toc.forEach((item) => {
-        const element = document.getElementById(item.id);
-        if (element && observerRef.current) {
-          observerRef.current.observe(element);
-        }
-      });
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
 
-      return () => {
-        if (observerRef.current) {
-          observerRef.current.disconnect();
-        }
-      };
-    }
+      if (element && observer) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
   };
 
   return (
