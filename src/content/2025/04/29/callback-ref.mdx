@@ -6,12 +6,11 @@ summary: "둘은 어덯게 다를까?"
 ---
 
 useEffect 대신 callbackRef를 쓰면 어떤 점이 좋아질까?  
-몇달 전 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
+몇 달전 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
 오랫동안 '나중에 보기'에 담아두고 잊고 살다가 우연한 기회로 꺼내보게 되었다.
 
 [What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)  
-이 영상은 반복적인 리렌더링 문제를 state 대신 useRef를 사용해 해결하고, 최종적으로 callbackRef로 최적화하는 과정을 보여준다.
-
+이 영상은 반복적인 리렌더링 문제는 state 대신 callbackRef를 사용해 해결한 과정을 보여준다.  
 영상 내용을 토대로 블로그에서 적용했던 코드를 수정해보자.
 
 ### 적용하기
@@ -21,9 +20,10 @@ useEffect 대신 callbackRef를 쓰면 어떤 점이 좋아질까?
 - 블로그 내용의 Heading 클릭시 queryParams에 추가 (이하 HeadingLink)
 - TOC 리스트 생성 및 클릭 시 해당 Heading으로 이동 (이하 TOC)
 
-블로그를 만들면서 다음과 같은 코드를 생산했었다.
+블로그를 만들면서 다음과 같은 코드를 작성했다.
 
 ```jsx
+// HeaderLinkWrapper.tsx
 export const HeaderLinkWrapper = ({
   children,
 }: {
@@ -61,15 +61,8 @@ export const HeaderLinkWrapper = ({
 
   return <div ref={contentRef}>{children}</div>;
 };
-```
 
-```tsx
-interface TOC {
-  id: string;
-  heading: string;
-  depth: number;
-}
-
+// TOC.tsx
 export const TOC = ({ toc }: { toc: TOC[] }) => {
   const [activeId, setActiveId] = useState<string>("");
 
@@ -82,7 +75,6 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
           }
         });
       },
-      { rootMargin: "-100px 0px -66%" }
     );
 
     toc.forEach((item) => {
@@ -97,27 +89,105 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
 
   return (
     <ul className="text-sm pl-1">
-      {toc.map((item) => (
-        <li
-        //...
-        >
-          <Link
-            href={`#${item.id}`}
-            className={cn(
-              "hover:text-foreground transition-colors",
-              activeId === item.id && "text-foreground"
-            )}
-          >
-            {item.heading}
-          </Link>
-        </li>
-      ))}
+      {/* ... */}
     </ul>
   );
 };
 ```
 
-위 예시에서 HeadingLink는 callbackRef로 변경하기 적절하지만, TOC는 적절하지 않다고 판단했다.
+이 예시들은 모두 callbackRef로 전환할 수 있을까? 또한 적절한 변경일까?  
+결론부터 이야기하자면 나는 `HeadingLink`는 callbackRef로 변경하기 적절하다 판단했고, `TOC`는 적절하지 않다고 판단했다.
+
+---
+
+### useEffect 대신 callbackRef
+
+먼저 두 소스코드 다 callbackRef로 변경할 수 있다.  
+그리고 변경했을 때 의도한대로 잘 동작한다.
+
+```jsx
+// HeaderLinkWrapper.tsx
+export const HeaderLinkWrapper = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const router = useRouter();
+
+  const callbackRef = (node: HTMLDivElement) => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+
+      if (
+        target.tagName.match(/^H[1-6]$/) &&
+        target.id &&
+        node.contains(target)
+      ) {
+        const hash = `#${target.id}`;
+        router.push(hash);
+      }
+    };
+
+    node.addEventListener("click", handleClick);
+    return () => {
+      node.removeEventListener("click", handleClick);
+    };
+  };
+
+  return <div ref={callbackRef}>{children}</div>;
+};
+
+// TOC.tsx
+export const TOC = ({ toc }: { toc: TOC[] }) => {
+  const [activeId, setActiveId] = useState<string>("");
+
+  const listRef = () => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+    );
+
+    toc.forEach((item) => {
+      const element = document.getElementById(item.id);
+
+      if (element && observer) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      if (observer) {
+        observer.disconnect();
+      }
+    };
+  };
+
+  return (
+    <ul ref={listRef} className="text-sm pl-1">
+      {/* ... */}
+    </ul>
+  );
+};
+```
+
+하지만 TOC 컴포넌트는 위와 같이 변경하기 보단, 원래의 상태를 유지하려고 한다.  
+그 이유는 아래 글을 참고하면 이해할 수 있다.
+
+[Ref Callbacks, React 19 and the Compiler](https://tkdodo.eu/blog/ref-callbacks-react-19-and-the-compiler#ref-callback-or-useeffect)
+
+Tkdodo의 가장 하단에 적힌 'Ref Callback or useEffect?'를 살펴보면, 다음과 같이 적혀있다.
+
+- node에 접근이 필요하다면 ref를 선호
+- node가 필요 없는 side-effect가 있다면 ref에서 처리하지 않음
+
+TOC는 매개변수 node를 추가하는게 불필요하다.  
+document를 통해 h1 ~ h6까지의 element를 추출해서, 이를 observer
+TOC는 매개변수로 **node를 사용하고 있지 않고**, document를 통해 element를 찾아야 하기 때문에 사이드이펙트에 해당한다고 판단했다.
 
 <br />
 

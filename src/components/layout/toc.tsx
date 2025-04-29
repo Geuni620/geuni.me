@@ -13,6 +13,8 @@ interface TOC {
 export const TOC = ({ toc }: { toc: TOC[] }) => {
   const [activeId, setActiveId] = useState<string>("");
 
+  console.log("toc", toc);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
