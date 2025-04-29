@@ -6,15 +6,20 @@ summary: "둘은 어덯게 다를까?"
 ---
 
 useEffect 대신 callbackRef를 쓰면 어떤 점이 좋아질까?  
-최근 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
-오랫동안 '나중에 보기'에 담아두고 잊고 살다가, 우연한 기회로 꺼내보게 되었다.
+몇달 전 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
+오랫동안 '나중에 보기'에 담아두고 잊고 살다가 우연한 기회로 꺼내보게 되었다.
 
 [What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)  
-이 영상은, 반복적인 리렌더링 문제를 state 대신 useRef를 사용해 해결하고, 최종적으로 callbackRef로 최적화하는 과정을 보여준다.
+이 영상은 반복적인 리렌더링 문제를 state 대신 useRef를 사용해 해결하고, 최종적으로 callbackRef로 최적화하는 과정을 보여준다.
 
-<br />
+영상 내용을 토대로 블로그에서 적용했던 코드를 수정해보자.
 
 ### 적용하기
+
+블로그에서 useEffect를 사용하는 두 소스코드가 있다.
+
+- 블로그 내용의 Heading 클릭시 queryParams에 추가 (이하 HeadingLink)
+- TOC 리스트 생성 및 클릭 시 해당 Heading으로 이동 (이하 TOC)
 
 블로그를 만들면서 다음과 같은 코드를 생산했었다.
 
@@ -57,13 +62,6 @@ export const HeaderLinkWrapper = ({
   return <div ref={contentRef}>{children}</div>;
 };
 ```
-
-mdx 파일의 heading 값을 읽어서 클릭했을 때, queryParams에 추가해주는 로직이다.  
-브라우저의 새 창을 열어서 링크를 붙여넣으면 해당 Heading의 위치로 이동해준다.  
-이는 callbackRef로 변경하기 적합한 코드라고 생각되었다.
-
-여기서 useEffect의 사용사례와 callbackRef의 사용사례가 헷갈릴 수 있다.
-아래는 callbackRef가 아닌 useEffect를 사용하는 것이 더 나은 코드이다.
 
 ```tsx
 interface TOC {
@@ -118,6 +116,17 @@ export const TOC = ({ toc }: { toc: TOC[] }) => {
   );
 };
 ```
+
+위 예시에서 HeadingLink는 callbackRef로 변경하기 적절하지만, TOC는 적절하지 않다고 판단했다.
+
+<br />
+
+mdx 파일의 heading 값을 읽어서 클릭했을 때, queryParams에 추가해주는 로직이다.  
+브라우저의 새 창을 열어서 링크를 붙여넣으면 해당 Heading의 위치로 이동해준다.  
+이는 callbackRef로 변경하기 적합한 코드라고 생각되었다.
+
+여기서 useEffect의 사용사례와 callbackRef의 사용사례가 헷갈릴 수 있다.
+아래는 callbackRef가 아닌 useEffect를 사용하는 것이 더 나은 코드이다.
 
 <br />
 
