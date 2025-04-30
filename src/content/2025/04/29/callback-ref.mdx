@@ -5,13 +5,18 @@ category: ["개발"]
 summary: "각각의 적용기준이 무엇일까?"
 ---
 
+import { YoutubeEmbed } from "@/components/video";
+
 useEffect 대신 callbackRef를 쓰면 어떤 점이 좋아질까?  
 몇 달전 Tanstack-Table 메인테이너가 트위터에 한 영상을 추천했다.  
 오랫동안 '나중에 보기'에 담아두고 잊고 살다가 우연한 기회로 꺼내보게 되었다.
 
-[What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)  
-이 영상은 반복적인 리렌더링 문제는 state 대신 callbackRef를 사용해 해결한 과정을 보여준다.  
-영상 내용을 토대로 블로그에서 적용했던 코드를 수정해보자.
+<YoutubeEmbed id="TgpTG5XYoz4" />
+
+[What Refs Can Do for You](https://gitnation.com/contents/what-refs-can-do-for-you)
+
+이 영상은 반복적인 리렌더링 문제는 state 대신 callbackRef를 사용해
+해결한 과정을 보여준다. 영상 내용을 토대로 블로그에서 적용했던 코드를 수정해보자.
 
 ### callbackRef 대상
 
