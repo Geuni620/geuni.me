@@ -1,0 +1,90 @@
+---
+date: "2025-05-01"
+title: "clean up function"
+category: ["개발"]
+summary: "리액트 19에서 추가된 기능"
+---
+
+import { SandpackWrapper } from "@/components/sandpack";
+
+## React 18 (이전 버전)
+
+<SandpackWrapper
+  template="react-ts"
+  files={{
+    "/App.tsx": `import { useState, useEffect } from "react";
+import React from "react";
+
+export default function App() {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    console.log("Effect 실행됨!");
+    console.log("React 버전:", React.version);
+    
+    // 기존 방식의 cleanup 함수
+    return () => {
+      console.log("Cleanup 실행됨!");
+    };
+  }, [count]);
+  
+  return (
+    <div>
+      <h1>React {React.version} Cleanup</h1>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>증가</button>
+    </div>
+  );
+}`,
+  }}
+  customSetup={{
+    dependencies: {
+      "react": "18.2.0",
+      "react-dom": "18.2.0"
+    }
+  }}
+  options={{
+    showConsole: true,
+    activeFile: "/App.tsx",
+  }}
+/>
+
+## React 19 (clean up 함수)
+
+<SandpackWrapper
+template="react-ts"
+  files={{
+    "/App.tsx": `import { useState, useEffect, cleanup } from "react";
+
+export default function App() {
+  const [count, setCount] = useState(0);
+  
+  useEffect(() => {
+    console.log("Effect 실행됨!");
+    
+    // React 19의 새로운 cleanup 함수 사용법
+    return(() => {
+      console.log("새로운 Cleanup API 사용!");
+    });
+  }, [count]);
+  
+  return (
+    <div>
+      <h1>React 19 Cleanup</h1>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>증가</button>
+    </div>
+  );
+}`,
+  }}
+  customSetup={{
+    dependencies: {
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0"
+    }
+  }}
+  options={{
+    showConsole: true,
+    activeFile: "/App.tsx"
+  }}
+/>
