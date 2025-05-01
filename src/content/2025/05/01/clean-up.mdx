@@ -6,47 +6,14 @@ summary: "리액트 19에서 추가된 기능"
 ---
 
 import { SandpackWrapper } from "@/components/sandpack";
+import { REACT_TEMPLATE_VITE_18, REACT_TEMPLATE_VITE_19 } from "./file";
 
 ## React 18 (이전 버전)
 
 <SandpackWrapper
-  template="react-ts"
-  files={{
-    "/App.tsx": `import { useState, useEffect } from "react";
-import React from "react";
-
-export default function App() {
-  const [count, setCount] = useState(0);
-  
-  useEffect(() => {
-    console.log("Effect 실행됨!");
-    console.log("React 버전:", React.version);
-    
-    // 기존 방식의 cleanup 함수
-    return () => {
-      console.log("Cleanup 실행됨!");
-    };
-  }, [count]);
-  
-  return (
-    <div>
-      <h1>React {React.version} Cleanup</h1>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>증가</button>
-    </div>
-  );
-}`,
-  }}
-  customSetup={{
-    dependencies: {
-      "react": "18.2.0",
-      "react-dom": "18.2.0"
-    }
-  }}
-  options={{
-    showConsole: true,
-    activeFile: "/App.tsx",
-  }}
+  files={REACT_TEMPLATE_VITE_18.files}
+  customSetup={REACT_TEMPLATE_VITE_18.customSetup}
+  options={REACT_TEMPLATE_VITE_18.options}
 />
 
 ## React 19 (clean up 함수)
