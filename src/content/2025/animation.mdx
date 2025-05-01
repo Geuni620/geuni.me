@@ -1,0 +1,33 @@
+---
+date: "2025-05-01"
+title: "animation"
+category: ["개발"]
+summary: "애니메이션 내용 기록"
+---
+
+[Great Animations](https://emilkowal.ski/ui/great-animations)
+
+- ease-out(빠르게 시작하고 마지막에 느려지는), 300ms 이하로 설정
+- 키보드 단축키에는 애니메이션을 넣지 않는 게 좋음
+
+### 퍼포먼스
+
+- 60FPS 유지가 최우선
+- transform, opacity만 애니메이션에 사용하는 것이 이상적이다.
+- 이 속성들은 Composite 단계만 트리거하여 브라우저 작업을 최소화 함
+- 반면, margin, padding 등은 Layout -> Paint -> Composite 모두 트리거함
+
+<br />
+
+- 하드웨어 가속 애니메이션 사용
+  - CSS 애니메이션 또는 Web Animation API를 사용하면 메인 스레드가 바쁘더라도 애니메이션은 부드럽게 유지
+  - 단, CSS 애니메이션이라고 해도 모든 속성이 하드웨어 가속을 받는 것은 아님 -> transform, opacity는 안전한 선택
+- rAF 기반 라이브러리(framer-motion)는 메인 스레드를 사용하기 때문에, 요소가 많아지면 성능 저하가 발생
+
+---
+
+### Intro
+
+[Vault](https://animations.dev/vault)
+
+강의 외에도 영감을 얻고, 배우고, 창작할 수 있는 유용한 링크, 도구, 엔지니어, 디자이너를 모아놓은 볼트
