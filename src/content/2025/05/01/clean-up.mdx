@@ -1,14 +1,23 @@
 ---
-date: "2025-05-01"
-title: "clean up function"
+date: "2025-05-02"
+title: "리액트 19에서 추가된 기능, ref cleanup function"
 category: ["개발"]
 summary: "리액트 19에서 추가된 기능"
+short: true
 ---
 
 import { SandpackWrapper } from "@/components/sandpack";
 import { REACT_TEMPLATE_VITE_18, REACT_TEMPLATE_VITE_19 } from "./file";
+import { SideNote } from "@/components/layout";
+import Link from "next/link";
 
-## React 18 (이전 버전)
+최근 [callbackRef](https://www.geuni.me/blog/2025/04/29/callback-ref)에 관한 글을 썼었다.  
+과정에서 알게 된 내용이 있는데, React 19에서는 [ref에 clean up 함수](https://react.dev/blog/2024/12/05/react-19#cleanup-functions-for-refs)가 추가되었다는 점이다.
+
+마침 블로그에서 [Sandpack](https://sandpack.codesandbox.io/docs)을 설정해두었는데, 사용사례가 없어서 고민하던 찰나였다.  
+따로 보일러플레이트 설정 없이 여기서 해당 부분을 테스트해보자.
+
+## TL;DR
 
 <SandpackWrapper
   files={REACT_TEMPLATE_VITE_18.files}
@@ -16,42 +25,39 @@ import { REACT_TEMPLATE_VITE_18, REACT_TEMPLATE_VITE_19 } from "./file";
   options={REACT_TEMPLATE_VITE_18.options}
 />
 
-## React 19 (clean up 함수)
+## Patch Note의 중요성
 
-<SandpackWrapper
-template="react-ts"
-  files={{
-    "/App.tsx": `import { useState, useEffect, cleanup } from "react";
+경험 하나를 공유하고 싶다.  
+나는 최근까지 회사에서 React 16버전을 사용했었다.  
+내가 개발을 처음 시작할 때, React 17버전이었고, 부트캠프에서 마지막 프로젝트를 진행하던 중 18버전이 릴리스되었다.
 
-export default function App() {
-  const [count, setCount] = useState(0);
-  
-  useEffect(() => {
-    console.log("Effect 실행됨!");
-    
-    // React 19의 새로운 cleanup 함수 사용법
-    return(() => {
-      console.log("새로운 Cleanup API 사용!");
-    });
-  }, [count]);
-  
-  return (
-    <div>
-      <h1>React 19 Cleanup</h1>
-      <p>Count: {count}</p>
-      <button onClick={() => setCount(count + 1)}>증가</button>
-    </div>
-  );
-}`,
-  }}
-  customSetup={{
-    dependencies: {
-      "react": "^19.0.0",
-      "react-dom": "^19.0.0"
-    }
-  }}
-  options={{
-    showConsole: true,
-    activeFile: "/App.tsx"
-  }}
-/>
+즉 최근에 다녔던 회사에서 처음으로 React 16버전을 사용해본 것이다.
+
+> '큰 차이는 없을거야.'
+
+<SideNote>
+  <Link
+    target="_blank"
+    href="https://geuni620.github.io/blog/2024/2/29/react-dev/"
+  >
+    Batching 관련해서 글도 썼어요.
+  </Link>
+</SideNote>
+
+당시 나는 큰 차이 없을 것이라고 생각했는데, 우연히 회사 컨플루언스를 뒤적이다가 발견한 글에서 처음보는 단어를 접했다. 바로 'Automatic Batching'이라는 단어였다.
+
+키워드를 미리 숙지해놓은 덕분에, 16버전에서 setTimeout을 사용할 때 유연하게 대처할 수 있었다.  
+동료들이 한번씩 "이거 로그가 너무 많이 찍혀요"와 같은 문제를 겪을 때 해당 내용에 대해서도 설명해줄 수 있었다.
+
+<br />
+
+때론 메이저버전의 변경으로 라이브러리 기틀이 바뀌는 경우도 빈번히 존재한다.  
+Tanstack Table만 해도 v7문서를 참고해서 v8을 개발하려고 하면 도통 문제가 잘 해결되지 않는다.
+
+작은 기능의 변화라도 본인이 사용하고 있는 라이브러리의 최신 트렌드를 따라갈 필요성이 있다고 느꼈다.  
+예상했던 동작이, 예상대로 동작하지 않을 때 머릿속에 혼란이 몰려온다.
+
+'뭐지? 어디서 잘못된거지? 사이드이펙트가 발생했나? 이렇게 동작하는게 아닌가? 내가 잘못 이해하고 있었나? 에???'
+
+사용한 외부 의존성(라이브러리)이 많을수록 더 혼란스러웠던 것 같다.
+그래서 나는 되도록 가능하다면, 최대한 최신버전을 유지하려고 했다.
