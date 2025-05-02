@@ -24,7 +24,7 @@ interface SandpackWrapperProps {
 
 export const SandpackWrapper: React.FC<SandpackWrapperProps> = ({
   files,
-  template,
+  template = "react-ts",
   options: userOptions,
 }) => {
   const mergedOptions = useMemo(
