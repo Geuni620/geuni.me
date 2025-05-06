@@ -31,3 +31,51 @@ summary: "애니메이션 내용 기록"
 [Vault](https://animations.dev/vault)
 
 강의 외에도 영감을 얻고, 배우고, 창작할 수 있는 유용한 링크, 도구, 엔지니어, 디자이너를 모아놓은 볼트
+
+<br />
+
+### The Easing Blueprint
+
+ease-out
+
+- 빠른 속도로 시작해 느린 속도로 끝남
+- 모달 열기와 같은 사용자 주도형 인터렉션에 사용
+
+ease-in-out
+
+- 자동차처럼 천천히 시작했다가, 속도를 높이고 천천히 끝남
+- 이미 화면에 있고, 새로운 위치로 이동하거나 새로운 형태로 변해야 하는 모든 것에 이 곡선을 사용
+
+ease-in
+
+- ease-out의 반대되는 개념
+- 천천히 시작해서 빠르게 끝나는 방식
+- 느리게 시작하기 때문에 인터페이스가 느리게 느껴지고, 반응성이 떨어질 수 있으므로 일반적으로 잘 안씀
+
+linear
+
+- 일정한 속도로 움직이기 때문에 모션이 로봇처럼 느껴지고, 부자연스러울 수 있으므로 일반적으로 잘 안씀
+- linear를 사용하는 유일한 경우는 로딩스피너나 상호작용이 없는 기타 연속 애니메이션에 사용
+
+ease
+
+- ease-in-out과 유사하지만 비대칭이며, ease-in-out 곡선보다 빠르게 시작하고 느리게 끝남
+- 주로 색상, 배경색, 불투명도 등을 전환하는 호버효과에 이를 사용
+
+Create your own curve
+
+- CSS cubic-bezier 함수를 사용하여 사용자 정의 완화 곡선을 만들 수 있음.
+- 이는 다양한 커브가 어떻게 작동하는지 실험하고 더 나은 느낌을 얻을 수 있는 방법
+
+[Cubic Bezier Curve Generator](https://easings.co/)
+
+---
+
+[Benjamin De Cock | Motion & Playfulness | UX Special, CSS Day 2018](https://youtu.be/fZpTvZuysIo?si=w8fH0Qw5bPV_2mQ5)  
+![](./css-day-2018.png)
+
+- css 대신 svg에 의존
+- 웹 API > css animation > requestAnimationFrame
+- will-change를 사용할 땐 주의할 것
+
+<br />
