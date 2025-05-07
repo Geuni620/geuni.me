@@ -79,3 +79,31 @@ Create your own curve
 - will-change를 사용할 땐 주의할 것
 
 <br />
+
+### Spring animations
+
+- spring animation은 SwiftUI에서 기본 애니메이션임
+- 제품 UI에서 바운스가 적절한 경우는 몇 가지에 불과함
+  - 보다 물리적인 느낌을 살리려면 **드래그 제스처가 끝날 때**, 약간의 바운스를 주는 것이 좋음
+- 저자는 대부분의 경우 바운스를 사용하지 않는 편이며, 사용하기로 결정한 경우에도 아주 작은 값을 사용함
+  - 일반적으로 전환이 자연스럽고 우아하게 느껴지도록 하기 위해서는 바운스 효과를 아예 사용하지 않는 것이 기본값이어야 해.
+
+<br />
+
+- spring animation은 자연스럽고 부드러움
+  - 실제 물리 세계의 움직임을 시뮬레이션하기 때문에 더 현실감 있고 감성적인 느낌을 준다
+  - ease, ease-in-out 같은 CSS 기반 커브 방식은 고정된 시간 내에서만 움직이기 때문에 비자연적임
+- spring animation은 중단(Interrupt)되어도 자연스럽게 이어진다.
+  - 새 애니메이션이 시작되면 기존 속도(velocity)를 이어받아 부드럽게 연결됨
+  - CSS 애니메이션은 이걸 못함 → 갑자기 '툭' 튀는 문제가 발생함
+- spring animation은 CSS만으로 제대로 구현할 수 없음
+  - CSS에서는 spring이라는 개념이 없고, linear()나 cubic-bezier() 등으로 비슷하게 '흉내'만 낼 수 있음
+  - 완전한 spring을 구현하려면, Framer motion, React Spring 같은 JS 기반 라이브러리를 사용해야함
+
+[Animate with springs](https://developer.apple.com/videos/play/wwdc2023/10158)
+
+- apple에서 spring animation에 대한 강의
+
+[The physics behind spring animations](https://blog.maximeheckel.com/posts/the-physics-behind-spring-animations/)
+
+- spring animation의 물리적 원리 설명
