@@ -16,9 +16,8 @@ export const generateMetadata = async ({
 }) => {
   const { slug } = await params;
   const { frontmatter } = await import(`@/content/${slug.join("/")}.mdx`);
-  const postImageUrl = `${CONFIG.site}/blog/${slug
-    .slice(0, 3)
-    .join("/")}/img.webp`;
+  const basePath = `${CONFIG.site}/blog`;
+  const postImageUrl = `${basePath}/${slug.slice(0, 3).join("/")}/img.webp`;
   const defaultImageUrl = `${CONFIG.site}/opengraph-image.png`;
   const imageExists = await fetch(postImageUrl)
     .then((res) => res.status === 200)
@@ -27,10 +26,13 @@ export const generateMetadata = async ({
   return {
     title: frontmatter.title,
     description: frontmatter.summary,
+    alternates: {
+      canonical: `${basePath}/${slug.slice(0, 4).join("/")}`,
+    },
     openGraph: {
       title: frontmatter.title,
       description: frontmatter.summary,
-      url: `${CONFIG.site}/blog/${slug.slice(0, 4).join("/")}`,
+      url: `${basePath}/${slug.slice(0, 4).join("/")}`,
       images: [
         {
           url: imageExists ? postImageUrl : defaultImageUrl,
