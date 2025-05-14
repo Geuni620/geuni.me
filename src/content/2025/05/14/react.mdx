@@ -1,0 +1,48 @@
+---
+date: "2025-05-14"
+title: "state를 멀리하기"
+category: ["개발"]
+summary: "123"
+---
+
+리액트는 어렵다.  
+열려있는 방향이 많아서, 조금만 한 눈 팔면 예측하지 못하는 코드를 작성하게 된다.  
+그런데 이보다 더 큰 문제는 예측하지 못하는 코드를 그 당시에는 모른다는 점이다.
+
+훗날 에러가 발생해서, 하나하나 디버깅을 해보며 따라가다보면 발견하게 되는 `useState`, `useEffect`.  
+당시에 문제없다고 생각하며 작성했던 코드가 발목을 잡는 것이다.
+
+오늘은 Tkdodo의 블로그 [useState pitfalls](https://tkdodo.eu/blog/tags/use-state-pitfalls) 글을 보면서 인사이트를 기록해두려고 한다.
+
+---
+
+## useEffect
+
+useEffect는 동기화를 위해 사용되는 경우가 많다.  
+하지만 단순 동기화가 아닌, **외부의 무언가와 동기화시키기 위해 사용되어야한다.**  
+단순 두 state를 동기화하기 위함이라면, useEffect보단 변수를 그대로 사용하는게 좋다.
+
+## useReducer
+
+```js
+// not bad
+const [value, setValue] = React.useState(true);
+
+<Button onClick={() => setValue((prev) => !prev)}>Toggle</Button>;
+
+// better
+const [value, setValue] = React.useReducer((prev) => !prev, true);
+
+<Button onClick={setValue}>Toggle</Button>;
+```
+
+생각보다 우리는 toggle hooks을 만들어서 사용할 때가 많다.  
+useState를 통해서 만든 useToggle 훅을 사용하기 보단, 간단한 useReducer를 사용해보자.
+
+참고로 toss에서 만든 react-simplikit의 [useToggle 역시 useReducer를 사용해서 구현되어있다.](https://github.com/toss/react-simplikit/blob/94f8826353479d34aeba5f1479a2b831eb645ff7/src/hooks/useToggle/useToggle.ts#L28)
+
+<br />
+
+### 참고자료
+
+[]()
