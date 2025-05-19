@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   },
   description: CONFIG.description,
   alternates: {
-    canonical: "/",
+    canonical: `${CONFIG.site}/`,
   },
   verification: {
     google: CONFIG.verification.google,
