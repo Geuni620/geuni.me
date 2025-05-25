@@ -1,8 +1,8 @@
 ---
-date: "2025-05-14"
-title: "state를 멀리하기"
+date: "2025-05-25"
+title: "리액트의 함정"
 category: ["개발"]
-summary: "123"
+summary: "자주 잊어버리고 실수했던 리액트 함정을 기록해두려고 한다."
 ---
 
 import { SandpackWrapper } from "@/components/sandpack";
@@ -49,8 +49,6 @@ useEffect는 동기화를 위해 사용되는 경우가 많다.
 여기서 말하는 **외부의 무언가**는 브라우저 API, 서드파티 라이브러리, 네트워크 등이다.  
 **useEffect를 이용해서 두 개 이상의 state를 동기화 시키는데 이용하는 것은 대체로 옳지 않다.**
 
-<br />
-
 **A상태의 변경에 의해 B상태를 초기화**해야하는 경우가 있다.  
 대표적인 두 상태를 동기화 시키는 예시이며 공식문서에선 이런 경우 useEffect를 사용하지 않는 것을 권장한다.
 
@@ -83,7 +81,7 @@ export const ActiveList = ({ isOpen }: { isOpen: boolean }) => {
 
   // ❌ useEffect로 초기화
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen === false) {
       setActiveTab(0);
     }
   }, [isOpen]);
@@ -106,27 +104,26 @@ export const ActiveList = ({ isOpen }: { isOpen: boolean }) => {
 };
 ```
 
+<br />
+
+추가로 state에 변경에 따라 ActiveList를 렌더링 시키는 방법도 있다.  
+key를 사용하는 것과 유사하다.
+
 ```tsx
 {
   isOpen && <ActiveList key={isOpen.toString()} isOpen={isOpen} />;
 }
 ```
 
-추가로 state에 변경에 따라 ActiveList를 렌더링 시키는 방법도 있다.  
-key를 사용하는 것과 유사하다.
-
-<br />
-
-페이지네이션을 예로 들어봤을 때, 이런 경우는 '상태의 동기화가 아닐까?' 의문이 든다.
-
-<br />
-
+[Tkdodo blog, Putting props to useState](https://tkdodo.eu/blog/putting-props-to-use-state)  
 [Tkdodo blog, No-useless-state](https://tkdodo.eu/blog/dont-over-use-state#no-useless-state)  
 [React 공식문서, You might not need an Effect ](https://react.dev/learn/synchronizing-with-effects#you-might-not-need-an-effect)
 
 ---
 
 ## useReducer
+
+### toggle 상태 관리
 
 React를 사용하다보면 자주 boolean 타입의 상태를 만들어서 사용하게 된다.  
 대표적인 예가 아래의 `토글버튼`이다.
@@ -146,6 +143,99 @@ const [value, setValue] = React.useReducer((prev) => !prev, true);
 ```
 
 toss에서 만든 react-simplikit의 [useToggle 역시 useReducer로 구현되어있었다.](https://github.com/toss/react-simplikit/blob/94f8826353479d34aeba5f1479a2b831eb645ff7/src/hooks/useToggle/useToggle.ts#L28)
+
+<br />
+
+### reducer 확장
+
+```jsx
+// useReducer로 구현
+const reducer = (amount: number) => (state: number, action: string) => {
+  switch (action) {
+    case "increment":
+      return state + amount;
+    case "decrement":
+      return state - amount;
+    default:
+      return state;
+  }
+};
+
+export const useCounterReducer = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ["amount"],
+    queryFn: fetchAmount,
+  });
+
+  const currentAmount = data ?? 1;
+  const [count, dispatch] = useReducer(reducer(currentAmount), 0);
+
+  return {
+    count,
+    dispatch,
+    isLoading,
+    amount: currentAmount,
+  };
+};
+```
+
+useReducer는 확장에 유연하다.  
+만약 증가와 감소 이외에 다른 액션이 필요하다면, `reducer` 함수를 확장해서 사용할 수 있다.
+
+<br />
+
+```jsx
+// useState로 구현
+export const useCounterState = () => {
+  const { data, isLoading } = useQuery({
+    queryKey: ["amount"],
+    queryFn: fetchAmount,
+  });
+
+  const currentAmount = data ?? 1;
+  const [count, setCount] = useState(0);
+
+  const handleIncrement = () => {
+    setCount((prev) => prev + currentAmount);
+  };
+
+  const handleDecrement = () => {
+    setCount((prev) => prev - currentAmount);
+  };
+
+  // ... 추가 로직
+
+  return {
+    count,
+    handleIncrement,
+    handleDecrement,
+    isLoading,
+    amount: currentAmount,
+  };
+};
+```
+
+하지만 useState로 구현하면 다음과 같이 함수를 모두 생성해야한다.
+
+또한 reducer를 사용하면, reducer 내부에서 서버 데이터에 접근할 수 있다.
+
+```js
+// useReducer로 구현
+const reducer = (amount: number) => (state: number, action: string) => {
+  // ✅ 서버에서 전달받은 amount를 사용할 수 있다.
+
+  return state;
+};
+
+// useState로 구현
+const amount = serverAmount ?? 1;
+// ❌ state는 서버에서 전달받은 amount를 state '내부에서' 핸들링하기 어렵다.
+// 만약 필요하다면 '외부에서' 서버데이터를 핸들링 한 뒤 넘겨줘야한다.
+const currentAmount = data ?? 1;
+const [count, setCount] = useState(0);
+```
+
+[Tkdodo blog, passing props to reducers](https://tkdodo.eu/blog/use-state-vs-use-reducer#passing-props-to-reducers)
 
 <br />
 
