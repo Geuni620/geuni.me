@@ -1,0 +1,139 @@
+---
+date: "2025-05-31"
+title: "Prettify 타입에 & {}는 왜 붙일까?"
+category: ["개발"]
+summary: "Prettify 타입에 & {}는 왜 붙일까?"
+---
+
+## Prettify 타입
+
+다음과 같은 타입이 있다고 가정해보자
+
+```ts
+type ComplexType = {
+  a: string;
+  b: number;
+} & {
+  c: boolean;
+} & Omit<{ c: boolean } & Record<"d", string[]>, "c">;
+
+type showMe = ComplexType;
+```
+
+위 타입을 hover(이하 호버)로 확인해보면 다음과 같은 결과를 출력한다.
+
+![](./complex-type.png)
+
+하지만 내가 의도한 타입은 아래와 같은 단순한 형태이다.
+
+```ts
+type ComplexType = {
+  a: string;
+  b: number;
+  c: boolean;
+  d: string[];
+};
+```
+
+이처럼 타입스크립트에서는 타입 연산을 통해 만들어진 결과가 호버했을 때 복잡하게 표현되는 경우가 많다. 이럴 때, 타입을 보기 좋게 **정리**해주는 유틸리티 타입이 바로 `Prettify`이다.
+
+```ts
+// prettify
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+type showMe = Prettify<ComplexType>;
+```
+
+이제 `showMe` 타입을 호버해보면 기대한 형태로 출력된다.
+
+![](./prettify-type.png)
+
+즉, `Prettify<T>`는 타입을 실질적으로 변경하지 않으면서, IDE 상에서 가독성을 높여주는 역할을 한다.
+
+---
+
+## 왜 & &#123; &#125;를 붙여주는걸까?
+
+한 가지 의문이 생겼다.
+
+```ts
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+}; // & { }
+```
+
+`& {}`는 없어도 타입 자체는 동일하게 작동한다.  
+그렇다면, 왜 굳이 `& {}`를 붙여줘야할까?
+
+이에 대한 힌트는 아래 질문에서 찾을 수 있었다.  
+[Intersection with object in Prettify helper type?](https://stackoverflow.com/questions/78453542/intersection-with-object-in-prettify-helper-type)
+
+```ts
+namespace A {
+  type PrettifyRemoveIntersection<T> = {
+    [K in keyof T]: T[K];
+  };
+
+  type Z = PrettifyRemoveIntersection<ComplexType>;
+  // type Z = { a: string; b: number; c: boolean; d: string[]; }
+
+  type ZZ = Array<PrettifyRemoveIntersection<{ a: string }>>;
+  // ✅ type ZZ = PrettifyRemoveIntersection<{ a: string }>[]
+}
+
+namespace B {
+  type PrettifyAndEmptyObject<T> = {
+    [K in keyof T]: T[K];
+  } & {};
+
+  type Z = PrettifyAndEmptyObject<ComplexType>;
+  // type Z = { a: string; b: number; c: boolean; d: string[]; }
+
+  type ZZ = Array<PrettifyAndEmptyObject<{ a: string }>>;
+  // ✅ type ZZ = { a: string }[]
+}
+```
+
+✅ 마크된 부분을 보면 미묘한 차이가 있다.  
+즉 `& {}`를 붙여주는 이유는 타입 정보를 IDE에서 '평탄화'된 형태로 보여주기 위함이다.
+
+그럼 또 궁금하다. 뭐가 달라졌길래 다르게 출력되는걸까?
+
+---
+
+## 지연평가
+
+이 동작은 타입스크립트의 지연 평가와 관련이 있다.  
+공식 문서는 아니지만, 아래 영상의 댓글에서 힌트를 얻었다.
+
+[6 TypeScript tips to turn you into a WIZARD](https://youtu.be/lraHlXpuhKs?si=2REPzVd1X4hlEyc_)
+
+> TypeScript typically uses lazy type evaluation, meaning it keeps the crazy nested structure of your types until it has to evaluate a value against them.  
+> 타입스크립트는 일반적으로 [`지연평가`](https://inpa.tistory.com/entry/LODASH-%F0%9F%93%9A-%EC%A7%80%EC%97%B0-%ED%8F%89%EA%B0%80-%EC%9B%90%EB%A6%AC-lodash%EB%8A%94-%EC%98%A4%ED%9E%88%EB%A0%A4-%EC%84%B1%EB%8A%A5%EC%9D%B4-%EC%A2%8B%EC%9D%84-%EC%88%98-%EC%9E%88%EB%8B%A4)를 사용하여 실제 타입 비교가 필요한 시점까지 복잡한 타입구조를 그대로 유지합니다.
+
+> It has certain heuristics to simplify computation, where it will sometimes evaluate things eagerly to save it work later.  
+> 하지만 효율을 위해 일부 상황에서는 선제적으로(eagerly) 평가하는 휴리스틱도 적용됩니다.
+
+> One of those heuristics is specifically when you construct a new explicit mapped type with a constraint, it will attempt to evaluate that in-place to resolve the constraint eagerly.  
+> 특히 새로운 명시적 매핑 타입에 제약 조건이 붙는 경우, 컴파일러는 이를 즉시 평가하려고 합니다.
+
+> The `& {}` is doing the work as the constraint here.  
+> 여기서 `& {}`는 제약 조건처럼 작동하여 타입을 바로 평가하게 만드는 역할을 합니다.
+
+`Prettify<T>`에서 `& {}`를 붙이면 타입이 시각적으로 정리되어 보여진다.  
+이는 타입 시스템에 명시적으로 제약을 주어, 지연 평가를 억제하고 결과 타입을 명확히 보여주는 효과가 있다.
+
+물론 성능 최적화를 위해 지연 평가를 사용하는 것이기 때문에, 항상 `& {}`를 붙이는 것은 바람직하지 않다고 생각된다.
+
+타입이 복잡하지 않거나, 디버깅을 위해 잠깐 타입을 평탄화하고 싶을 때 적절히 사용될 수 있을 것이 좋을 것 같다.
+
+---
+
+## 참고자료
+
+[The `Prettify` Helper](https://www.totaltypescript.com/concepts/the-prettify-helper)  
+[6 TypeScript tips to turn you into a WIZARD](https://youtu.be/lraHlXpuhKs?si=v1jHZVR-9GdkO9Sq)  
+[Intersection with object in Prettify helper type?](https://stackoverflow.com/questions/78453542/intersection-with-object-in-prettify-helper-type)  
+[Lodash 지연 평가(Lazy Evaluation) 원리](https://inpa.tistory.com/entry/LODASH-%F0%9F%93%9A-%EC%A7%80%EC%97%B0-%ED%8F%89%EA%B0%80-%EC%9B%90%EB%A6%AC-lodash%EB%8A%94-%EC%98%A4%ED%9E%88%EB%A0%A4-%EC%84%B1%EB%8A%A5%EC%9D%B4-%EC%A2%8B%EC%9D%84-%EC%88%98-%EC%9E%88%EB%8B%A4)
