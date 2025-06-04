@@ -1,0 +1,109 @@
+---
+date: "2025-06-04"
+title: "막힐 때 풀어주는 테스트코드"
+category: ["개발"]
+summary: "막힐 때 풀어주는 테스트코드"
+---
+
+## 테스트 환경에서 로그 출력하기
+
+```jsx
+it("컴포넌트가 렌더링 된 후 debug 출력하기", async () => {
+  await render(<EmptyNotice />);
+
+  // DOM 구조 출력
+  screen.debug();
+});
+```
+
+`jsdom`에 컴포넌트가 어떻게 렌더링 되는지 확인할 수 있음
+
+![element를 출력해볼 수 있음](./screen-debug.png)
+
+---
+
+## 의존성 패키지 모킹하기
+
+다음과 같은 컴포넌트가 있다.
+
+```jsx
+import { useNavigate } from "react-router-dom";
+
+const EmptyNotice = () => {
+  const navigate = useNavigate();
+  const handleClickBack = () => {
+    navigate("/");
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        height: 400,
+        alignItems: "center",
+        flexDirection: "column",
+      }}
+    >
+      <Typography sx={{ fontSize: "50px", fontWeight: "light" }}>
+        텅~
+      </Typography>
+      <MuiLink
+        underline="hover"
+        onClick={handleClickBack}
+        style={{ cursor: "pointer" }}
+        role="link"
+      >
+        홈으로 가기
+      </MuiLink>
+    </Box>
+  );
+};
+```
+
+이 컴포넌트에서 "홈으로 가기" 링크를 클릭했을 때, "/" 경로로 이동하는 테스트코드를 작성해보자.
+
+```jsx
+it('"홈으로 가기" 링크를 클릭할경우 "/"경로로 navigate 함수가 호출된다', async () => {
+  const { user } = await render(<EmptyNotice />);
+
+  await user.click(screen.getByText("홈으로 가기"));
+
+  // 여기서 어떻게 검증할까?
+});
+```
+
+위 테스트코드를 그대로 실행하면 실패한다. `useNavigate` 훅이 `Router context` 없이 동작하지 않기 때문이다.
+
+---
+
+이를 해결하기 위해 navigate 함수를 모킹해보자.
+
+```jsx
+// 실제 모듈을 모킹한 모듈로 대체하여 테스트 진행
+// useNavigate 훅으로 반환받은 navigate 함수가 올바르게 호출되었는가? → 스파이 함수
+const navigateFn = vi.fn();
+
+vi.mock("react-router-dom", async () => {
+  const original = await vi.importActual("react-router-dom");
+
+  return { ...original, useNavigate: () => navigateFn };
+});
+
+it('"홈으로 가기" 링크를 클릭할경우 "/"경로로 navigate함수가 호출된다', async () => {
+  const { user } = await render(<EmptyNotice />);
+
+  await user.click(screen.getByText("홈으로 가기"));
+  expect(navigateFn).toHaveBeenNthCalledWith(1, "/");
+});
+```
+
+vitest의 [vi.mock](https://vitest.dev/api/vi.html#vi-mock) 함수를 사용하면, react-router-dom 패키지를 모킹 할 수 있다.
+
+- vi.mock 함수를 사용하면, 특정 패키지를 원하는 함수로 대체할 수 있다. 이때 [vi.importActual](https://vitest.dev/api/vi.html#vi-importactual) 함수를 사용하여 실제 모듈을 가져온다.
+- react-router-dom 패키지를 모킹한 뒤, useNavigate를 navigateFn 함수로 대체한다.
+- navigate 함수가 설정한대로 동작하는지 확인하기 위해, spy 함수를 사용해서 테스트 코드를 작성한다.
+
+---
+
+## setup, teardown 함수
