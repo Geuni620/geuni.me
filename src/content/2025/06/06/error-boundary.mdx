@@ -1,0 +1,280 @@
+---
+date: "2025-06-06"
+title: "Error Boundary 컴포넌트"
+category: ["개발"]
+summary: ""
+---
+
+Error Boundary는 리액트 16버전부터 출시되었다.  
+이전 회사에서 사용했던 16.14.2버전에서도 Error Boundary 컴포넌트를 사용할 수 있었으나, try-catch 문을 통해서 에러를 catch 해왔다. 명령적으로 코드를 작성했던 것이다.
+
+선언적으로 사용했었던, 그 전 회사에서는 Error Boundary 컴포넌트를 사용했지만, [react-error-boundary](https://github.com/bvaughn/react-error-boundary)에 의존했다.
+
+아쉽게도 이런 상황으로 인해, Error Boundary 컴포넌트를 직접 만들어보지 못했다.  
+오늘은 Error Boundary 컴포넌트를 직접 만들어보고, 로그를 찍어보며 어떻게 동작하는지 확인해보려고 한다.
+
+---
+
+[React 공식문서](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)에서 제공하는 Error Boundary 예시는 다음과 같다.
+
+```jsx
+// ErrorBoundary.tsx
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren,
+  { hasError: boolean }
+> {
+  constructor(props: React.PropsWithChildren) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    console.log("getDerivedStateFromError", error);
+
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.log("componentDidCatch", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>에러가 발생했어요.</div>;
+    }
+
+    return this.props.children;
+  }
+}
+
+// App.tsx
+export const Route = createFileRoute("/")({
+  component: RouteComponent,
+  pendingComponent: () => <AppSkeleton />,
+  errorComponent: ErrorComponent,
+  loader: async () => {
+    const data = await paymentService.getPayments();
+    return data;
+  },
+});
+
+function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
+  if (shouldThrow) {
+    throw new Error("💥 특정 조건에서 발생한 에러!");
+  }
+
+  return null;
+}
+
+function RouteComponent() {
+  const data = Route.useLoaderData();
+
+  return (
+    <ErrorBoundary>
+      <div className="flex flex-col items-center justify-center h-full">
+        <Bomb />
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+만약 다음과 같은 코드가 있다고 가정했을 때, Error Boundary 컴포넌트의 생명주기는 어떻게 동작할까?
+
+[React 구버전 Docs에서 Error Boundary를 소개해준다](https://ko.legacy.reactjs.org/docs/error-boundaries.html#introducing-error-boundaries)
+
+1. getDerivedStateFromError가 에러가 발생했음을 인지하고, 다음 렌더링에서 폴백 UI가 보이도록 상태를 업데이트한다. (hasError state를 true로 변경)
+2. componentDidCatch가 호출되고, 에러와 에러 정보를 출력한다.
+3. render 메서드가 호출되고, 폴백 UI가 보이도록 렌더링한다.
+
+<br />
+
+이를 기반으로 하나씩 추가해보면서, 필요한 요소를 넣어보자
+
+## renderFallback 메서드
+
+현재는 render 메서드에서 폴백 UI를 커스텀 할 수 없다.  
+이를 해결하기 위해 인터페이스(props)를 추가해보자.
+
+```jsx
+function RouteComponent() {
+  const data = Route.useLoaderData();
+
+  return (
+    // 아래와 같이 renderFallback 메서드를 넣어주고 싶은 것이다.
+    <ErrorBoundary renderFallback={() => <div>에러가 발생했어요.</div>}>
+      <div className="flex flex-col items-center justify-center h-full">
+        <Bomb shouldThrow={true} />
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+```jsx
+import * as React from "react";
+
+type Props = {
+  renderFallback: (error: Error) => React.ReactNode;
+};
+
+interface State<ErrorType extends Error = Error> {
+  error: ErrorType | null;
+}
+
+const initialState: State = {
+  error: null,
+};
+
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren<Props>,
+  State
+> {
+  state = initialState;
+
+  static getDerivedStateFromError(error: Error) {
+    console.log("getDerivedStateFromError", error);
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.log("componentDidCatch", error, info);
+  }
+
+  render() {
+    if (this.state.error !== null) {
+      return this.props.renderFallback(this.state.error);
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+이렇게 넣고보니, renderFallback 메서드를 통해 폴백 UI가 렌더링 될텐데, 여기에 버튼을 추가해서 에러 이후의 동작을 제어할 수 있도록 하고 싶다.  
+이럴 땐, resetErrorBoundary 메서드를 통해 에러를 초기화 할 수 있다.
+
+```jsx
+// ErrorBoundary.tsx
+type Props = {
+  renderFallback: (error: Error, reset: () => void) => React.ReactNode,
+};
+
+//...
+
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren<Props>,
+  State
+> {
+  //...
+
+  // 에러를 초기화 할 수 있는 메서드를 추가해주었다.
+  resetErrorBoundary() {
+    this.setState(initialState);
+  }
+
+  render() {
+    if (this.state.error !== null) {
+      return this.props.renderFallback(
+        this.state.error,
+        // 이 메서드를 통해 에러를 초기화 할 수 있다.
+        this.resetErrorBoundary
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// App.tsx
+function RouteComponent() {
+  const data = Route.useLoaderData();
+
+  return (
+    <ErrorBoundary
+      // renderFallback 메서드에 reset을 추가해주었다.
+      renderFallback={(error, reset) => (
+        <div>
+          <p>{error.message}</p>
+          <button onClick={reset}>초기화</button>
+        </div>
+      )}
+    >
+      <div className="flex flex-col items-center justify-center h-full">
+        <Bomb shouldThrow={true} />
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+<br />
+
+여기까지 만든 상태에서 본격적으로 이 글에서 제시하고 싶었던 내용을 적어보려고 한다.
+
+[reset을 선언적으로 호출할 수 있는 인터페이스](https://jbee.io/articles/react/React%EC%97%90%EC%84%9C%20%EC%84%A0%EC%96%B8%EC%A0%81%EC%9C%BC%EB%A1%9C%20%EB%B9%84%EB%8F%99%EA%B8%B0%20%EB%8B%A4%EB%A3%A8%EA%B8%B0#reset%EC%9D%84-%EC%84%A0%EC%96%B8%EC%A0%81%EC%9C%BC%EB%A1%9C-%ED%98%B8%EC%B6%9C%ED%95%A0-%EC%88%98-%EC%9E%88%EB%8A%94-%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4)
+
+여기서 제시하는 resetKey는 어떤 경우에 필요한걸까? 예시를 만들어보자.
+
+```jsx
+// App.tsx
+function UserDataDisplay({ userId }: { userId: string }) {
+  if (userId === "error-user") {
+    throw new Error(`💥 사용자 ID '${userId}'에서 에러 발생!`);
+  }
+
+  return (
+    <div className="p-4 border rounded bg-green-50">
+      <h3 className="font-bold">사용자 데이터</h3>
+      <p>현재 사용자 ID: {userId}</p>
+      <p>✅ 정상적으로 로드된 데이터</p>
+    </div>
+  );
+}
+
+function RouteComponent() {
+  const data = Route.useLoaderData();
+  const [currentUserId, setCurrentUserId] = useState("user1");
+
+  return (
+    <div className="p-4">
+      <div className="mb-4 p-4 border rounded bg-gray-50">
+        <h3 className="font-bold mb-2">👤 사용자 전환</h3>
+        <div className="space-x-2 mb-2">
+          <button onClick={() => setCurrentUserId("user1")}>
+            User 1 (정상)
+          </button>
+          <button onClick={() => setCurrentUserId("user2")}>
+            User 2 (정상)
+          </button>
+          <button onClick={() => setCurrentUserId("error-user")}>
+            Error User (에러 발생)
+          </button>
+        </div>
+        <p className="text-sm">현재 선택: {currentUserId}</p>
+      </div>
+
+      <ErrorBoundary
+        // renderFallback 메서드에 reset을 추가해주었다.
+        renderFallback={(error, reset) => (
+          <div>
+            <p>{error.message}</p>
+            <button onClick={reset}>초기화</button>
+          </div>
+        )}
+      >
+        <div className="flex flex-col items-center justify-center h-full">
+          <Bomb shouldThrow={true} />
+          <DataTable data={data.data} columns={columns} />
+        </div>
+      </ErrorBoundary>
+    </div>
+  );
+}
+```
+
+User 1과 User 2를 클릭하면 에러가 발생하지 않고, 정상적으로 동작한다.  
+하지만, Error User를 클릭하면 에러가 발생하고 Error Boundary 컴포넌트에서 폴백 UI가 렌더링된다.
