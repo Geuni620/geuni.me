@@ -1,0 +1,354 @@
+---
+date: "2025-06-08"
+title: "에러바운더리 컴포넌트 기록"
+category: ["개발"]
+summary: "resetKeys가 왜 필요할까?"
+---
+
+import { SandpackWrapper } from "@/components/sandpack";
+import { SideNote } from "@/components/layout";
+import {
+  ERROR_BOUNDARY_NOT_SETTING_RESET_KEYS,
+  ERROR_BOUNDARY_SETTING_RESET_KEYS,
+} from "./file";
+
+지금까지는 [react-error-boundary](https://github.com/bvaughn/react-error-boundary)를 사용해서 Error Boundary(이하 에러바운더리) 컴포넌트를 사용했었다.
+
+이번 글에서는 의존성 없이 에러바운더리를 하나씩 뜯어보자.
+
+---
+
+## 에러바운더리 생명주기
+
+[React 공식문서](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)에서 제공하는 에러바운더리 예시는 다음과 같다.
+
+```jsx
+// ErrorBoundary.tsx
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren,
+  { hasError: boolean }
+> {
+  constructor(props: React.PropsWithChildren) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    console.log("getDerivedStateFromError", error);
+
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.log("componentDidCatch", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>에러가 발생했어요.</div>;
+    }
+
+    return this.props.children;
+  }
+}
+
+// App.tsx
+function Bomb({ shouldThrow }: { shouldThrow: boolean }) {
+  if (shouldThrow) {
+    throw new Error("💥 특정 조건에서 발생한 에러!");
+  }
+
+  return null;
+}
+
+function RouteComponent() {
+  const data = Route.useLoaderData();
+
+  return (
+    <ErrorBoundary>
+      <div className="flex flex-col items-center justify-center h-full">
+        <Bomb />
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+위 코드에서 에러바운더리 컴포넌트의 생명주기는 어떻게 될까?
+
+[React 공식문서](https://ko.legacy.reactjs.org/docs/error-boundaries.html#introducing-error-boundaries)를 살펴보면 주석으로 설명되어있다.
+
+1. `getDerivedStateFromError`가 에러가 발생했음을 인지하고, 다음 렌더링에서 Fallback UI(이하 폴백 UI)가 보이도록 상태를 업데이트한다.
+   - hasError false → true
+2. `componentDidCatch`가 호출되고, 에러와 에러 정보를 출력한다.
+3. `render` 메서드가 호출되고, 폴백 UI 가 보이도록 렌더링한다.
+
+이대로는 조금 아쉬우니, 위 코드를 기반으로 필요한 요소들을 하나씩 추가해보자.
+
+---
+
+## renderFallback 메서드
+
+현재는 `render` 메서드에서 폴백 UI를 커스텀 할 수 없다.  
+이를 해결하기 위해 인터페이스를 추가해보자.
+
+```jsx
+function RouteComponent() {
+  const data = Route.useLoaderData();
+
+  return (
+    // 아래와 같이 renderFallback 메서드를 넣어주고 싶은 것이다.
+    <ErrorBoundary renderFallback={() => <div>에러가 발생했어요.</div>}>
+      <div className="flex flex-col items-center justify-center h-full">
+        <Bomb shouldThrow={true} />
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+```jsx
+import * as React from "react";
+
+interface RenderFallbackProps {
+  error: Error;
+}
+
+type Props = {
+  renderFallback: (props: RenderFallbackProps) => React.ReactNode,
+};
+
+interface State {
+  error: Error | null;
+}
+
+const initialState: State = {
+  error: null,
+};
+
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren<Props>,
+  State
+> {
+  state = initialState;
+
+  static getDerivedStateFromError(error: Error) {
+    console.log("getDerivedStateFromError", error);
+
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.log("componentDidCatch", error, info);
+  }
+
+  render() {
+    if (this.state.error !== null) {
+      return this.props.renderFallback({ error: this.state.error });
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+이렇게 넣고 보니, `renderFallback` 통해 폴백 UI가 렌더링 될 것이다.  
+한 걸음 더 나아가서, 폴백 UI에 버튼을 추가해서 에러 이후의 동작을 제어할 수 있도록 하고 싶다.
+
+이럴 땐, `resetErrorBoundary` 메서드를 통해 에러를 초기화 할 수 있다.
+
+```jsx
+// ErrorBoundary.tsx
+interface RenderFallbackProps {
+  error: Error;
+  reset: () => void;
+}
+
+//...
+
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren<Props>,
+  State
+> {
+  //...
+
+  // 에러를 초기화 할 수 있는 메서드를 추가해주었다.
+  resetErrorBoundary = () => {
+    this.setState(initialState);
+  };
+
+  render() {
+    if (this.state.error !== null) {
+      return this.props.renderFallback({
+        error: this.state.error,
+        reset: this.resetErrorBoundary,
+      });
+    }
+
+    return this.props.children;
+  }
+}
+
+// App.tsx
+function RouteComponent() {
+  const data = Route.useLoaderData();
+
+  return (
+    <ErrorBoundary
+      // renderFallback 메서드에 reset을 추가해주었다.
+      renderFallback={({ error, reset }) => (
+        <div>
+          <p>{error.message}</p>
+          <button onClick={reset}>초기화</button>
+        </div>
+      )}
+    >
+      <div className="flex flex-col items-center justify-center h-full">
+        <Bomb shouldThrow={true} />
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+이제 폴백 UI가 떴을 때, 수동으로 '초기화'버튼을 클릭함으로써 에러 상태를 초기화 할 수 있다.
+
+---
+
+## resetKeys
+
+<SideNote>해당 글을 참고했어요. 🙏</SideNote>
+
+[reset을 선언적으로 호출할 수 있는 인터페이스](https://jbee.io/articles/react/React%EC%97%90%EC%84%9C%20%EC%84%A0%EC%96%B8%EC%A0%81%EC%9C%BC%EB%A1%9C%20%EB%B9%84%EB%8F%99%EA%B8%B0%20%EB%8B%A4%EB%A3%A8%EA%B8%B0#reset%EC%9D%84-%EC%84%A0%EC%96%B8%EC%A0%81%EC%9C%BC%EB%A1%9C-%ED%98%B8%EC%B6%9C%ED%95%A0-%EC%88%98-%EC%9E%88%EB%8A%94-%EC%9D%B8%ED%84%B0%ED%8E%98%EC%9D%B4%EC%8A%A4)
+
+이 글에서 제시하는 `resetKeys`는 어떤 경우에 필요한걸까? 예시를 만들어보자.
+
+<SandpackWrapper
+  files={ERROR_BOUNDARY_NOT_SETTING_RESET_KEYS.files}
+  options={{
+    editorHeight: 600,
+    editorWidthPercentage: 0,
+  }}
+/>
+
+`User 1`과 `User 2`를 클릭하면 에러가 발생하지 않고, 정상적으로 동작한다.  
+하지만, `Error User`를 클릭하면 에러가 발생하고 에러바운더리 컴포넌트에서 폴백 UI가 렌더링된다.
+
+다시 `User 1`과 `User 2`를 클릭하면 폴백 UI가 사라질 것이라 예상하지만 **사라지지 않는다.**
+
+폴백 UI를 사라지게 만들고 싶다면, 수동으로 리셋 버튼을 클릭해야한다.
+
+<br />
+
+그럼 이제 `resetKeys`를 추가해보자.
+
+<SandpackWrapper
+  files={ERROR_BOUNDARY_SETTING_RESET_KEYS.files}
+  options={{
+    editorHeight: 600,
+    editorWidthPercentage: 0,
+  }}
+/>
+
+예시에서 확인할 수 있듯이, 폴백 UI가 렌더링 된 상태에서 `User 1`과 `User 2`를 클릭하면 폴백 UI가 사라진다.
+
+즉 수동으로 리셋버튼을 클릭하지 않아도 된다.
+
+---
+
+resetKeys를 추가했을 땐, 수동으로 버튼을 클릭하지 않아도 된다.  
+하지만 추가하지 않았다면, 수동으로 버튼을 클릭해야한다.  
+왜 이런 차이가 발생하는걸까?
+
+```jsx
+// ErrorBoundary.tsx
+export class ErrorBoundary extends React.Component<
+  React.PropsWithChildren<Props>,
+  State
+> {
+  state = initialState;
+
+  // ...
+
+  componentDidUpdate(prevProps: Props) {
+    console.log("componentDidUpdate", prevProps, this.props);
+    if (this.state.error == null) {
+      return;
+    }
+
+    // resetKeys가 변경된 경우 에러 상태 초기화
+    if (isDifferentArray(prevProps.resetKeys, this.props.resetKeys)) {
+      this.resetErrorBoundary();
+    }
+  }
+
+  render() {
+    if (this.state.error !== null) {
+      return this.props.renderFallback({
+        error: this.state.error,
+        reset: this.resetErrorBoundary,
+      });
+    }
+
+    return this.props.children;
+  }
+}
+```
+
+```jsx
+// utils.ts
+export const isDifferentArray = (a: unknown[], b: unknown[]) => {
+  return (
+    a.length !== b.length || a.some((item, index) => !Object.is(item, b[index]))
+  );
+};
+
+// App.tsx
+function RouteComponent() {
+  const data = Route.useLoaderData();
+  const [currentUserId, setCurrentUserId] = useState("user1");
+
+  return (
+    <ErrorBoundary
+      // resetKeys를 추가해주었다.
+      resetKeys={[currentUserId]}
+      renderFallback={({ error, reset }) => (
+        <div className="p-4 border-2 border-red-300 rounded bg-red-50">
+          <h2 className="font-bold text-red-700">에러 발생</h2>
+          <p>{error.message}</p>
+          <Button variant="destructive" className="mt-2" onClick={reset}>
+            수동으로 리셋
+          </Button>
+        </div>
+      )}
+    >
+      <UserDataDisplay userId={currentUserId} />
+      <div className="mt-4">
+        <DataTable data={data.data} columns={columns} />
+      </div>
+    </ErrorBoundary>
+  );
+}
+```
+
+해당 코드를 살펴봤을 때, 원인은 **에러바운더리에서 에러가 발생했을 때 관리하는 상태(state)가 초기화 되지 않았기 때문**이다.
+
+이를 해결하기 위해 `componentDidUpdate` 메서드에 기존 `resetKeys`와 이전 `prevResetKeys`를 비교해서 초기화 해주는 로직을 추가해주었다.
+
+`resetKeys`와 `prevResetKeys`를 `Object.is` 메서드를 통해 비교한 뒤 값이 다를 경우, 에러바운더리에서 관리하는 상태를 초기화하는 것이다.
+
+이로인해 폴백 UI가 렌더링 된 상태에서 `User 1`과 `User 2`를 클릭하면 폴백 UI가 사라진다.
+
+즉 `resetKeys`는 에러바운더리 컴포넌트에 **에러 상태 초기화 트리거**를 선언적으로 제공하는 역할을 한다.
+
+---
+
+## 참고자료
+
+[React 공식문서](https://ko.legacy.reactjs.org/docs/error-boundaries.html)  
+[Toss Stack 공식 문서](https://www.slash.page/ko/)  
+[React에서 선언적으로 비동기 다루기](https://jbee.io/articles/react/React%EC%97%90%EC%84%9C%20%EC%84%A0%EC%96%B8%EC%A0%81%EC%9C%BC%EB%A1%9C%20%EB%B9%84%EB%8F%99%EA%B8%B0%20%EB%8B%A4%EB%A3%A8%EA%B8%B0)  
+[react-error-boundary](https://github.com/bvaughn/react-error-boundary/blob/master/src/ErrorBoundary.ts)
