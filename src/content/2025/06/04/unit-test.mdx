@@ -1,11 +1,12 @@
 ---
 date: "2025-06-15"
-title: "테스트 코드 작성 기록"
+title: "단위 테스트: 의존성 모킹, 훅, 타이머 테스트"
 category: ["개발"]
 summary: "작성할 때마다 새로운 테스트코드, 기록해두기"
 ---
 
-> 해당 글은, [실무에 바로 적용하는 프런트엔드 테스트 - 1부. 테스트 기초: 단위・통합 테스트](https://www.inflearn.com/course/%EC%8B%A4%EB%AC%B4%EC%A0%81%EC%9A%A9-%ED%94%84%EB%9F%B0%ED%8A%B8%EC%97%94%EB%93%9C-%ED%85%8C%EC%8A%A4%ED%8A%B8-1%EB%B6%80/dashboard)를 학습하며 배운 내용을 정리했습니다.
+> [실무에 바로 적용하는 프런트엔드 테스트 - 1부. 테스트 기초: 단위・통합 테스트](https://www.inflearn.com/course/%EC%8B%A4%EB%AC%B4%EC%A0%81%EC%9A%A9-%ED%94%84%EB%9F%B0%ED%8A%B8%EC%97%94%EB%93%9C-%ED%85%8C%EC%8A%A4%ED%8A%B8-1%EB%B6%80/dashboard)  
+> 해당 글은 위 강의를 듣고 학습한 내용을 정리했습니다.
 
 ---
 
@@ -26,7 +27,7 @@ it("컴포넌트가 렌더링 된 후 debug 출력하기", async () => {
 
 ---
 
-## 의존성 패키지 모킹하기
+## 의존성 모킹
 
 다음과 같은 컴포넌트가 있다.
 
@@ -92,15 +93,12 @@ it('"홈으로 가기" 링크를 클릭할경우 "/"경로로 navigate함수가 
 
 즉, react-router-dom 패키지를 모킹한 뒤, useNavigate를 navigateFn 함수로 대체한다.
 
-여기서 navigateFn은 spy(이하 스파이) 함수이다. 스파이 함수란 특정 함수의 호출 여부/인자 등을 추적 가능하게 해주는 함수이다.
+여기서 navigateFn은 spy(이하 스파이) 함수이다.  
+스파이 함수란 **특정 함수의 호출 여부/인자 등을 추적 가능**하게 해주는 함수이다.
 
 ---
 
-## setup, teardown 함수
-
----
-
-## useCustomHook 테스트 코드 작성하기
+## 훅 테스트
 
 다음과 같은 훅(hooks)이 있다.  
 일반적으로 모달을 열고, 닫을 때 사용하는 훅이다.
@@ -192,7 +190,7 @@ expect(result.current.isModalOpened).toBe(true);
 
 ---
 
-## 타이머테스트
+## 타이머 테스트
 
 debounce 함수를 테스트해보자.
 
@@ -229,11 +227,9 @@ it("특정 시간이 지난 후 함수가 호출된다.", () => {
 
 테스트 코드는 비동기 타이머와 무관하게 동기적으로 실행되며, 비동기 함수가 실행되기 전에 단언이 실행되어 테스트는 실패한다.
 
-이를 해결하기 위해, vitest에서는 타이머를 모킹할 수 있는 API를 제공한다.
+이를 해결하기 위해, vitest에서는 타이머를 모킹할 수 있는 [vi.useFakeTimers](https://vitest.dev/api/vi.html#vi-usefaketimers)를 제공한다.
 
-- [vi.useFakeTimers](https://vitest.dev/api/vi.html#vi-usefaketimers)
-
-useFakeTimers를 사용하면, 테스트코드가 작성하는 시점에 타이머를 모킹할 수 있다.
+`vi.useFakeTimers`를 사용하면, 테스트코드가 작성하는 시점에 타이머를 모킹할 수 있다.
 
 ```jsx
 beforeEach(() => {
@@ -282,18 +278,7 @@ afterEach(() => {
 
 ---
 
-## userEvent vs fireEvent
-
----
-
-## 통합테스트
-
-- 가능한 한 모킹을 하지 않고 실제와 유사하게 검증한다.
-- 비즈니스 로직을 처리하는 상태 관리나 API 호출은 상위 컴포넌트로 응집한다.
-- 변경 가능성을 고려해 여러 도메인의 기능이 조합된 비즈니스 로직은 나눠 검증한다.
-
-<br />
-
 ## 참고자료
 
+[실무에 바로 적용하는 프런트엔드 테스트 - 1부. 테스트 기초: 단위・통합 테스트](https://www.inflearn.com/course/%EC%8B%A4%EB%AC%B4%EC%A0%81%EC%9A%A9-%ED%94%84%EB%9F%B0%ED%8A%B8%EC%97%94%EB%93%9C-%ED%85%8C%EC%8A%A4%ED%8A%B8-1%EB%B6%80/dashboard)  
 [vitest discussions #5809: Mocking imported modules correctly with Vitest and React](https://github.com/vitest-dev/vitest/discussions/5809)
