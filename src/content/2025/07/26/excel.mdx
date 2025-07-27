@@ -54,25 +54,79 @@ Next.js를 이용해서 간단한 예시를 만들어봤다.
 
 개발자도구를 확인했을 때, `canceled`가 떠버린다.
 
-## Fetch API, Request.keepalive
+---
 
-`case 1`에서 다운로드가 유지된 이유는 무엇일까?  
-Fetch API 내 Request.keepalive 속성이 존재한다.
+## 고민하기
 
-브라우저는 기본적으로 페이지 닫기, 새로고침, 이동 중인 경우 네트워크 요청을 중단한다.  
-`keepalive: true`를 설정하면 브라우저에게 페이지가 언로드되어도 요청을 보내라고 지시하는 것과 같다.
+`Case 2`는 어찌보면 다운로드 실패하는게 당연하다.  
+도메인 변경시, 브라우저가 이미 해당 요청을 취소했고, 응답을 받을 페이지가 더이상 존재하지 않는다.
 
-한번 테스트해보자.
+`Case 3`도 새로고침으로 인해, 브라우저의 모든 실행요청을 중단시키는 것이다.
 
-```tsx
+문제는 `Case 1`인데, `Case 3`에서 한 가지 힌트를 얻었다.
+`Case 3`의 로직을 구현하기 위해, `window.location.reload()`함수를 사용하였다.
 
+그럼, `window.location.href`를 사용해서 페이지를 이동할 경우에도, 다운로드는 유지될까?  
+확인해보자.
+
+![](./link-a.gif)
+
+1. index페이지에서 'Excel 파일 다운로드 버튼 클릭'
+   - 이때 응답은 최소 5초 이후에 받도록 setTimeout을 적용했다.
+2. About 버튼을 클릭해서 About 페이지로 이동
+   - 5초 전에 페이지를 이동시켰다.
+3. 이동한 페이지에서 대기
+
+첫 번째로 시도한 건 Link 태그를 사용한 로직이다. 위에서 확인했듯이 페이지를 이동해도 다운로드가 가능하다.
+
+```jsx
+<Link
+  href="/about"
+  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded text-center text-sm transition-colors duration-200"
+>
+  About (Link)
+</Link>
 ```
 
-## HTTP 비연결성
+두 번째로 시도한 a 태그를 사용한 로직이다. 영상에서 볼 수 있듯이, 페이지를 이동하면 다운로드를 실패한다.  
+네트워크 탭에서 `canceled`가 뜨는 것을 확인할 수 있었다.
 
-## HTTP header keep-alive
+```jsx
+<a
+  href="/about"
+  className="flex-1 bg-green-400 hover:bg-green-500 text-white font-medium py-2 px-3 rounded text-center text-xs transition-colors duration-200"
+>
+  🔗 About (a태그)
+</a>
+```
+
+---
+
+## 원인분석
+
+### 다운로드
+
+React는 SPA 방식으로 동작한다.  
+React-Router와 같은 라우팅 라이브러리를 사용할 경우, 사용자는 URL 변경과 함께 화면도 전환되는 것처럼 보인다.
+
+하지만, **브라우저 입장에서는 페이지 전환이 발생하지 않는다.**  
+단지, 기존의 JS 런타임 컨텍스트 내에서 DOM을 조작하는 것일 뿐이다.  
+즉, 페이지의 unload 이벤트가 발생하지 않기 때문에, `fetch` 또는 `Blob` 기반의 다운로드 요청도 정상적으로 유지된다.
+
+반면, `a`태그로 다른 URL을 이동하는 경우에는 **브라우저 수준의 페이지 전환이 발생**한다.  
+이 경우 브라우저는 기존 페이지를 unload하고, JS 실행 컨텍스트와 네트워크 요청을 모두 중단시킨다.  
+그래서 다운로드가 중단되거나 실패할 수 있었던 것이다.
+
+### Next.js의 SPA
+
+위 전제는 어디까지는 SPA라는 가정에서 시작되었다.  
+그럼 Next.js는 SPA가 맞나?  
+`use client`가 명시된 클라이언트 컴포넌트는 CSR일까? SSR일까?
+
+하나씩 짚어보자.
 
 ## 참고자료
 
-[](https://css-tricks.com/send-an-http-request-on-page-exit/)  
-[Request: keepalive property](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive)
+[Reliably Send an HTTP Request as a User Leaves a Page](https://css-tricks.com/send-an-http-request-on-page-exit/)  
+[Request: keepalive property](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive)  
+['use client'가 CSR이라고 알고 있는 거 아니죠? Next.js 면접질문 정복](https://velog.io/@k-svelte-master/nextjs-rsc-csr-ssr)
