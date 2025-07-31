@@ -1,8 +1,8 @@
 ---
 date: "2025-07-26"
-title: ""
+title: "엑셀 다운로드 중 페이지를 이탈하면 어떻게 될까?"
 category: ["개발"]
-summary: ""
+summary: "엑셀 다운로드 버튼을 클릭 후, 해당 페이지를 이탈하면 다운로드는 유지될까?"
 ---
 
 A페이지에서 보여지는 데이터를 엑셀로 다운받으려 할 때, 서버에서 처리시간이 길어져 사용자가 이를 기다리지 못하고 B페이지를 이탈했다고 가정해보자.  
@@ -149,7 +149,7 @@ Next.js 공식문서에서 [React Server Component Payload (RSC)](https://nextjs
 - 클라이언트에서 React가 이 데이터를 받아서 다시 **DOM으로 렌더링**
 - Payload에 포함된 내용은 아래와 같다.
   - 페이지/레이아웃에 포함된 Server Components의 렌더결과
-  - Suspense, metadata, outlet 구조
+  - Server Components에서 Client Components로 전달되는 props 요소
   - Client Component placeholder 및 JS 참조
 
 참고로 \*`vusbg`는 내부적으로 hydration 및 캐시를 위한 키이다.
@@ -160,7 +160,11 @@ Next.js 공식문서에서 [React Server Component Payload (RSC)](https://nextjs
 
 ## 결론
 
-엑셀다운로드 시
+SPA 방식에서는 다운로드 요청이 유지된다. 반면, 브라우저 수준의 페이지 전환이 발생하면 요청은 중단된다. 이는 `a`태그나 `window.location.href` 등을 통해 페이지를 이동했을 때 발생한다.
+
+Next.js에 `use client`가 선언된 클라이언트 컴포넌트 초기에 SSR로 렌더링되지만, 이후 `Link`컴포넌트나 `useRouter().push()`등을 통해 페이지를 이동하면 SPA처럼 동작한다. 이 경우에도 다운로드 요청은 유지된다.
+
+---
 
 ## 참고자료
 
