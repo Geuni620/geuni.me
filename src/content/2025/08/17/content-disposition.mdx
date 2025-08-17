@@ -1,0 +1,78 @@
+---
+date: "2025-08-17"
+title: "Content-Disposition Header"
+category: ["개발"]
+summary: "Content-Disposition 헤더가 undefined로 나올 때, 원인과 해결방법"
+short: true
+---
+
+[Content-Disposition](https://developer.mozilla.org/ko/docs/Web/HTTP/Reference/Headers/Content-Disposition)이라는 헤더가 존재한다.
+
+> 일반적인 HTTP 응답에서 Content-Disposition 헤더는 컨텐츠가 브라우저에 inline 되어야 하는 웹페이지 자체이거나 웹페이지의 일부인지,
+> 아니면 attachment로써 다운로드 되거나 로컬에 저장될 용도록 쓰이는 것인지를 알려주는 헤더입니다.
+> \- Content-Disposition MDN 설명 중 -
+
+이번에 나는 어드민에서 엑셀 다운로드 기능을 개발하게 되었고, 서버에서 `Content-Disposition` 헤더에 attachment와 함께 filename을 전달해주었다.  
+하지만 응답받은 response에서 `Content-Disposition` 헤더가 **undefined**로 노출되었다.
+
+---
+
+## 해결방법
+
+검색을 해보니, 해결방법은 간단했다.  
+headers 내 `Access-Control-Expose-Headers` 헤더를 설정해서 `filename`을 가져오는 것이다.
+
+참고로 이 헤더는, 클라이언트가 접근할 수 없는 헤더들에 대해 접근할 수 있도록 설정하는 헤더이다.
+
+나는 테스트를 위해 `hono`를 사용했으며, hono에서는 `Access-Control-Expose-Headers`를 다음과 같이 설정한다.
+
+```ts
+app.use(
+  "*",
+  cors({
+    origin: "*",
+    // The value of "Access-Control-Expose-Headers" CORS header. The default is [].
+    exposeHeaders: ["Content-Disposition"],
+  })
+);
+```
+
+---
+
+## 원인
+
+원인은 무엇일까? 한 마디로 `CORS` 때문이었다.  
+기본적으로 브라우저는 [CORS 안전 목록 응답 헤더](https://developer.mozilla.org/ko/docs/Glossary/CORS-safelisted_response_header)만 노출시킨다.
+
+- Cache-Control
+- Content-Language
+- Content-Length
+- Content-Type
+- Expires
+- Last-Modified
+- Pragma
+
+이 외의 별도의 header에 접근하기 위해선, `Access-Control-Expose-Headers`를 사용하여 허용 목록에 부가적인 헤더를 추가해주어야하는 것이다.  
+그럼 `cross-origin`이 아닌 `same-origin`인 경우는 위와 같은 설정이 필요없을까?
+
+[배포사이트](https://content-disposition.vercel.app/)  
+[commit 3553351](https://github.com/Geuni620/content-disposition-test/commit/355335177237bc4d497997a6efb5de404bb503cc)
+
+Next.js로 구성한 뒤, Vercel을 통해 배포해보았다.  
+따로, 설정없이 동일한 `origin`이므로, filename에 접근이 가능했다.
+
+---
+
+## 정리
+
+정리해보면, 동일한 [출처](https://developer.mozilla.org/ko/docs/Glossary/Origin)라면, **별도의 설정은 필요없다.**  
+동일한 출처가 아니라면, 추가적인 `Access-Control-Expose-Headers` 설정이 필요하다.
+
+---
+
+## 참고자료
+
+[교차 출처 리소스 공유 (CORS)](https://developer.mozilla.org/ko/docs/Web/HTTP/Guides/CORS)  
+[Access-Control-Expose-Headers](https://developer.mozilla.org/ko/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers)  
+[CORS 허용 목록에 있는 응답 헤더](https://developer.mozilla.org/ko/docs/Glossary/CORS-safelisted_response_header)  
+[웹개발 짜증유발자! CORS가 뭔가요?](https://youtu.be/bW31xiNB8Nc?si=AwShP1XuZ_wdME-p)
