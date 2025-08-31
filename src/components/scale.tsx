@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import styles from "./scale.module.css";
 
 const TIMER = 2000;
 
@@ -36,6 +37,24 @@ export const ScaleButton = () => {
         >
           copied!
         </span>
+      </div>
+    </Layout>
+  );
+};
+
+const LENGTH = 3;
+
+export const StackedComponent = () => {
+  return (
+    <Layout>
+      <div className={styles.wrapper}>
+        {new Array(LENGTH).fill(0).map((_, i) => (
+          <div
+            key={i}
+            className={styles.card}
+            style={{ "--index": LENGTH - 1 - i } as React.CSSProperties}
+          />
+        ))}
       </div>
     </Layout>
   );
