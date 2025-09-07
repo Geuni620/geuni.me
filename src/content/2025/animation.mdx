@@ -202,3 +202,21 @@ animation prompt
   - 복잡한 애니메이션 구현
   - 정교하고 세련된 애니메이션
   - 인터럽트 가능한 자연스러운 애니메이션
+
+<br />
+
+### transitions
+
+transition property
+
+- transition-property: 애니메이션을 적용할 속성, ex) transform, opacity, background-color, all
+- transition-duration: 애니메이션 지속 시간, ex) 200ms
+- transition-timing-function: 애니메이션 타이밍 함수, ex) ease, ease-in, cubic-bezier(0.19, 1, 0.22, 1)
+- transition-delay: 애니메이션 지연 시간, ex) 100ms
+
+```TSX
+.button {
+  /* Transition transform over 200ms with ease as our timing function and a delay of 100ms */
+  transition: transform 200ms ease 100ms;
+}
+```
