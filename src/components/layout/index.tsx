@@ -9,3 +9,7 @@ export const SideNote = ({ children }: { children: React.ReactNode }) => {
     </div>
   );
 };
+
+export const Layout = () => {
+  return <div className=""></div>;
+};
