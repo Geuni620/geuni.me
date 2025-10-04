@@ -1,0 +1,71 @@
+---
+date: "2025-10-04"
+title: "falsy에 대한 고찰"
+category: ["개발"]
+summary: "구조분해할당의 기본값과 falsy 값"
+short: true
+---
+
+## 구조분해할당 기본값
+
+아래와 같은 코드가 있다.
+
+```ts
+const { code = "" } = error;
+```
+
+code에 값이 있다면 그 값이 사용되겠지만, 기본값으로 빈 문자열("")이 할당되는 경우는 언제일까?
+
+정답은, code가 `undefined`일 때만 기본값이 할당된다.
+
+즉, error.code가 `null`, `0`, `false` 등의 값이라도 그대로 할당되며, **오직 undefined일 때만 기본값이 적용**된다.
+
+<br />
+
+## Falsy 값과 조건문
+
+조금 더 나아가서 아래와 같은 코드가 있다.
+
+```ts
+const { code = "" } = error;
+
+return code ? `[${code}]` : "";
+```
+
+이 경우 빈 문자열("")이 리턴되는 경우는 언제일까?  
+code가 다음과 같은 falsy 값일 때 빈 문자열이 리턴된다.
+
+```js
+false,
+0,
+""(빈 문자열),
+null,
+undefined,
+NaN,
+```
+
+자바스크립트에서는 이 6가지 값을 falsy 값이라고 하며, 이를 제외한 모든 값은 truthy 값이다.
+
+<br />
+
+## 빈 객체와 빈 배열
+
+의외로 빈 객체, 빈 배열은 truthy 값이다.
+
+```js
+if ([]) {
+  return "truthy";
+}
+
+if ({}) {
+  return "truthy";
+}
+```
+
+두 코드 모두 `truthy`가 출력된다.
+
+<br />
+
+## 참고자료
+
+[MDN, 구조 분해 할당 기본값](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Operators/Destructuring#%EA%B8%B0%EB%B3%B8%EA%B0%92)
