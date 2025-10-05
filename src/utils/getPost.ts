@@ -14,6 +14,7 @@ interface PostFrontmatter {
   thumbnail: string;
   description: string;
   short: boolean | undefined;
+  visible: false | undefined;
 }
 
 interface Post extends PostFrontmatter {
