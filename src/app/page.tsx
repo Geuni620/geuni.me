@@ -17,7 +17,9 @@ export default async function Home(props: {
   const filteredPostsByYear = Object.fromEntries(
     Object.entries(postsByYear).map(([year, posts]) => [
       year,
-      showShort ? posts : posts.filter((post) => !post.short),
+      posts
+        .filter((post) => post.visible !== false) // visible 체크
+        .filter((post) => showShort || !post.short), // short 체크
     ])
   );
   const years = Object.keys(filteredPostsByYear).sort((a, b) =>
