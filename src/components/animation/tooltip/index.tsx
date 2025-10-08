@@ -7,6 +7,7 @@ const BOUNDARY_MARGIN = 12;
 
 export const AnchoredTooltip = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const onMouseMoveDown = (clientEvent: React.MouseEvent<HTMLDivElement>) => {
@@ -17,15 +18,19 @@ export const AnchoredTooltip = () => {
 
     const moveHandler = (moveEvent: MouseEvent) => {
       const container = containerRef.current?.getBoundingClientRect();
-      if (!container) return;
+      const icon = iconRef.current?.getBoundingClientRect();
+      if (!container || !icon) {
+        return;
+      }
 
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
 
       const minX = -(container.width / 2) + BOUNDARY_MARGIN;
-      const maxX = container.width / 2 - BOUNDARY_MARGIN;
+      const maxX = container.width / 2 - icon.width - BOUNDARY_MARGIN;
+
       const minY = -(container.height / 2) + BOUNDARY_MARGIN;
-      const maxY = container.height / 2 - BOUNDARY_MARGIN;
+      const maxY = container.height / 2 - icon.height - BOUNDARY_MARGIN;
 
       setPosition({
         x: Math.max(minX, Math.min(initialX + deltaX, maxX)),
@@ -42,23 +47,26 @@ export const AnchoredTooltip = () => {
   };
 
   return (
-    <div ref={containerRef} className="layout">
-      <span>
+    <>
+      <span className="text-sm text-gray-500 w-full text-start p-2">
         position: {position.x}, {position.y}
       </span>
-      <div
-        style={{
-          left: `calc(50% + ${position.x}px)`,
-          top: `calc(50% + ${position.y}px)`,
-        }}
-        className="grab"
-        onMouseDown={onMouseMoveDown}
-      >
-        <Icon size={24} />
-      </div>
+      <div ref={containerRef} className="layout">
+        <div
+          style={{
+            left: `calc(50% + ${position.x}px)`,
+            top: `calc(50% + ${position.y}px)`,
+          }}
+          ref={iconRef}
+          className="grab"
+          onMouseDown={onMouseMoveDown}
+        >
+          <Icon size={24} />
+        </div>
 
-      <Tooltip />
-    </div>
+        <Tooltip />
+      </div>
+    </>
   );
 };
 
