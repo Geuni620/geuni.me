@@ -12,24 +12,36 @@
   anchor-name: --anchor;
   position: absolute;
   cursor: grab;
-  left: 50%;
-  top: 50%;
   user-select: none;
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: transform 0.3s ease;
 }
 
-.tooltip {
+.grab:active {
+  transform: scale(0.97);
+}
+
+.tooptip {
   --distance: 1em;
-  --size: 1.2em;
 
   position: absolute;
   position-anchor: --anchor;
 
+  /* 기본: 앵커 위, 가로 중앙 정렬 */
   bottom: calc(anchor(top) + var(--distance));
   justify-self: anchor-center;
-
-  position-try-fallbacks: --to-bottom;
   margin: var(--distance) 0 0;
-  anchor-name: --tooltip;
+
+  /* 자동 플립 (위/아래, 좌/우) */
+  position-try: flip-block, flip-inline;
+
+  /* 구문 차이 대응(기존 코드 유지 가능) */
+  position-try-fallbacks: --to-bottom;
 }
 
 @position-try --to-bottom {

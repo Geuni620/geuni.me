@@ -45,7 +45,8 @@ export const AnchoredTooltip = () => {
     <div ref={containerRef} className="layout">
       <div
         style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
+          left: `calc(50% + ${position.x}px)`,
+          top: `calc(50% + ${position.y}px)`,
         }}
         className="grab"
         onMouseDown={onMouseMoveDown}
@@ -58,7 +59,7 @@ export const AnchoredTooltip = () => {
 };
 
 const Tooltip = () => {
-  return <div className="tooltip">드래그 해보세요!</div>;
+  return <div className="tooltip text-sm">grab and drag</div>;
 };
 
 /**
