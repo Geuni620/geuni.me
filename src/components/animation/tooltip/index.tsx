@@ -43,6 +43,9 @@ export const AnchoredTooltip = () => {
 
   return (
     <div ref={containerRef} className="layout">
+      <span>
+        position: {position.x}, {position.y}
+      </span>
       <div
         style={{
           left: `calc(50% + ${position.x}px)`,
@@ -52,14 +55,15 @@ export const AnchoredTooltip = () => {
         onMouseDown={onMouseMoveDown}
       >
         <Icon size={24} />
-        <Tooltip />
       </div>
+
+      <Tooltip />
     </div>
   );
 };
 
 const Tooltip = () => {
-  return <div className="tooltip text-sm">grab and drag</div>;
+  return <div className="tooltip text-sm ">group</div>;
 };
 
 /**

@@ -9,8 +9,9 @@
 }
 
 .grab {
-  anchor-name: --anchor;
   position: absolute;
+  anchor-name: --anchor;
+
   cursor: grab;
   user-select: none;
 
@@ -20,28 +21,25 @@
   justify-content: center;
   gap: 4px;
   transition: transform 0.3s ease;
+
+  border: 1px solid red;
 }
 
 .grab:active {
   transform: scale(0.97);
 }
 
-.tooptip {
+.tooltip {
   --distance: 1em;
+  --size: 1.2em;
 
   position: absolute;
   position-anchor: --anchor;
 
-  /* 기본: 앵커 위, 가로 중앙 정렬 */
   bottom: calc(anchor(top) + var(--distance));
-  justify-self: anchor-center;
-  margin: var(--distance) 0 0;
+  justify-self: anchor-center; /* anchor-center: 앵커 중앙 정렬 */
 
-  /* 자동 플립 (위/아래, 좌/우) */
-  position-try: flip-block, flip-inline;
-
-  /* 구문 차이 대응(기존 코드 유지 가능) */
-  position-try-fallbacks: --to-bottom;
+  position-try-fallbacks: --to-bottom; /* anchor-center 적용 후 앵커 위치가 아래로 내려갈 경우 앵커 위치를 위로 올림 */
 }
 
 @position-try --to-bottom {
