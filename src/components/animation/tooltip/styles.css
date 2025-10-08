@@ -1,23 +1,39 @@
 :root {
-  --anchor: "anchor";
+  --anchor: "grab";
 }
 
 .layout {
   position: relative;
+  width: 100%;
   min-height: 400px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .grab {
   anchor-name: --anchor;
-  position: relative;
+  position: absolute;
   cursor: grab;
+  left: 50%;
+  top: 50%;
+  user-select: none;
 }
 
 .tooltip {
-  position-anchor: --anchor;
+  --distance: 1em;
+  --size: 1.2em;
+
   position: absolute;
-  bottom: calc(anchor(top) + 1em);
+  position-anchor: --anchor;
+
+  bottom: calc(anchor(top) + var(--distance));
+  justify-self: anchor-center;
+
+  position-try-fallbacks: --to-bottom;
+  margin: var(--distance) 0 0;
+  anchor-name: --tooltip;
+}
+
+@position-try --to-bottom {
+  bottom: auto;
+  top: calc(anchor(bottom) + var(--distance));
+  margin: 0 0 var(--distance);
 }
