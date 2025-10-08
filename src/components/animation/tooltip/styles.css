@@ -1,0 +1,23 @@
+:root {
+  --anchor: "anchor";
+}
+
+.layout {
+  position: relative;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grab {
+  anchor-name: --anchor;
+  position: relative;
+  cursor: grab;
+}
+
+.tooltip {
+  position-anchor: --anchor;
+  position: absolute;
+  bottom: calc(anchor(top) + 1em);
+}
