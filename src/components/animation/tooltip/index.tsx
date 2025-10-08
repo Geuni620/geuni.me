@@ -71,7 +71,7 @@ export const AnchoredTooltip = () => {
 };
 
 const Tooltip = () => {
-  return <div className="tooltip text-sm ">group</div>;
+  return <div className="tooltip text-sm">grab!</div>;
 };
 
 /**
