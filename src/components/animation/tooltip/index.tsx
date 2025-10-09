@@ -3,7 +3,7 @@
 import "./styles.css";
 import { useState, useRef } from "react";
 
-const BOUNDARY_MARGIN = 12;
+const BOUNDARY_MARGIN = 0;
 
 export const AnchoredTooltip = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,11 +26,11 @@ export const AnchoredTooltip = () => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
 
-      const minX = -(container.width / 2) + BOUNDARY_MARGIN;
-      const maxX = container.width / 2 - icon.width - BOUNDARY_MARGIN;
+      const minX = -container.width / 2;
+      const maxX = container.width / 2 - icon.width;
 
-      const minY = -(container.height / 2) + BOUNDARY_MARGIN;
-      const maxY = container.height / 2 - icon.height - BOUNDARY_MARGIN;
+      const minY = -container.height / 2;
+      const maxY = container.height / 2 - icon.height;
 
       setPosition({
         x: Math.max(minX, Math.min(initialX + deltaX, maxX)),
