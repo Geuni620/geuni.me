@@ -70,23 +70,10 @@ export const AnchoredTooltip = () => {
 
     const mouseUpHandler = () => {
       document.removeEventListener("mousemove", moveHandler);
-
-      requestAnimationFrame(() =>
-        syncTooltipDriection({
-          iconRef: iconRef.current!,
-          tooltipRef: tooltipRef.current!,
-        })
-      );
     };
 
     document.addEventListener("mousemove", moveHandler);
     document.addEventListener("mouseup", mouseUpHandler, { once: true });
-    requestAnimationFrame(() =>
-      syncTooltipDriection({
-        iconRef: iconRef.current!,
-        tooltipRef: tooltipRef.current!,
-      })
-    );
   };
 
   return (
