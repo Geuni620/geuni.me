@@ -56,7 +56,7 @@ export const AnchoredTooltip = () => {
           style={{
             left: `calc(50% + ${position.x}px)`,
             top: `calc(50% + ${position.y}px)`,
-            transform: `translate(-50%, -50%)`,
+            transform: `scale(var(--scale))`,
           }}
           ref={iconRef}
           className="grab"

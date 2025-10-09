@@ -13,6 +13,7 @@
 }
 
 .grab {
+  --scale: 1;
   position: absolute;
   anchor-name: --anchor;
 
@@ -25,11 +26,10 @@
   justify-content: center;
   gap: 4px;
   transition: transform 0.3s ease;
-  transform: translate(-50%, -50%);
 }
 
 .grab:active {
-  transform: scale(0.97);
+  --scale: 0.9;
 }
 
 .tooltip {
@@ -42,7 +42,17 @@
   bottom: calc(anchor(top) + var(--distance));
   justify-self: anchor-center; /* anchor-center: 앵커 중앙 정렬 */
 
+  /* 플립은 즉시지만, 보이는 변화는 부드럽게 */
+  transform: scale(1);
+  transition: transform 180ms ease, bottom 180ms ease, top 180ms ease;
+  will-change: transform, bottom, top;
+
   position-try-fallbacks: --to-bottom; /* anchor-center 적용 후 앵커 위치가 아래로 내려갈 경우 앵커 위치를 위로 올림 */
+}
+
+.layout:has(.grab:active) .tooltip {
+  transform: scale(0.95);
+  --distance: 0.6em;
 }
 
 @position-try --to-bottom {
