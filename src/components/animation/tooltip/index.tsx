@@ -5,9 +5,28 @@ import { useState, useRef } from "react";
 
 const BOUNDARY_MARGIN = 12;
 
+interface SyncTooltipDriectionProps {
+  iconRef: HTMLDivElement;
+  tooltipRef: HTMLDivElement;
+}
+
+const syncTooltipDriection = ({
+  iconRef,
+  tooltipRef,
+}: SyncTooltipDriectionProps) => {
+  const icon = iconRef.getBoundingClientRect();
+  const tooltip = tooltipRef.getBoundingClientRect();
+
+  tooltipRef.style.setProperty(
+    "--dy-sign",
+    String(tooltip.top >= icon.bottom ? -1 : 1)
+  );
+};
+
 export const AnchoredTooltip = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   const onMouseMoveDown = (clientEvent: React.MouseEvent<HTMLDivElement>) => {
@@ -36,14 +55,34 @@ export const AnchoredTooltip = () => {
         x: Math.max(minX, Math.min(initialX + deltaX, maxX)),
         y: Math.max(minY, Math.min(initialY + deltaY, maxY)),
       });
+
+      requestAnimationFrame(() =>
+        syncTooltipDriection({
+          iconRef: iconRef.current!,
+          tooltipRef: tooltipRef.current!,
+        })
+      );
     };
 
     const mouseUpHandler = () => {
       document.removeEventListener("mousemove", moveHandler);
+
+      requestAnimationFrame(() =>
+        syncTooltipDriection({
+          iconRef: iconRef.current!,
+          tooltipRef: tooltipRef.current!,
+        })
+      );
     };
 
     document.addEventListener("mousemove", moveHandler);
     document.addEventListener("mouseup", mouseUpHandler, { once: true });
+    requestAnimationFrame(() =>
+      syncTooltipDriection({
+        iconRef: iconRef.current!,
+        tooltipRef: tooltipRef.current!,
+      })
+    );
   };
 
   return (
@@ -65,14 +104,24 @@ export const AnchoredTooltip = () => {
           <Icon size={24} />
         </div>
 
-        <Tooltip />
+        <Tooltip tooltipRef={tooltipRef} />
       </div>
     </>
   );
 };
 
-const Tooltip = () => {
-  return <div className="tooltip text-sm">grab!</div>;
+const Tooltip = ({
+  tooltipRef,
+}: {
+  tooltipRef: React.RefObject<HTMLDivElement | null>;
+}) => {
+  if (!tooltipRef) return null;
+
+  return (
+    <div ref={tooltipRef} className="tooltip text-sm">
+      grab!
+    </div>
+  );
 };
 
 /**

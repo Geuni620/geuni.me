@@ -34,7 +34,7 @@
 
 .tooltip {
   --distance: 1em;
-  --size: 1.2em;
+  --dy-sign: 1;
 
   position: absolute;
   position-anchor: --anchor;
@@ -51,12 +51,7 @@
 }
 
 .layout:has(.grab:active) .tooltip {
-  transform: scale(0.95);
-  --distance: 0.6em;
-}
-
-.layout:has(.grab:active) .tooltip {
-  transform: translateY(0.4em) scale(0.95);
+  transform: translateY(calc(var(--dy-sign) * var(--distance))) scale(0.95);
 }
 
 @position-try --to-bottom {
