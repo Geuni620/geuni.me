@@ -26,15 +26,11 @@ export const AnchoredTooltip = () => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
 
-      const minX = 0;
-      const maxX = Math.floor(
-        container.width - icon.width - 2 * BOUNDARY_MARGIN
-      );
+      const minX = -container.width / 2 + icon.width / 2 + BOUNDARY_MARGIN;
+      const maxX = container.width / 2 - icon.width / 2 - BOUNDARY_MARGIN;
 
-      const minY = 0;
-      const maxY = Math.floor(
-        container.height - icon.height - 2 * BOUNDARY_MARGIN
-      );
+      const minY = -container.height / 2 + icon.height / 2 + BOUNDARY_MARGIN;
+      const maxY = container.height / 2 - icon.height / 2 - BOUNDARY_MARGIN;
 
       setPosition({
         x: Math.max(minX, Math.min(initialX + deltaX, maxX)),
@@ -58,8 +54,9 @@ export const AnchoredTooltip = () => {
       <div ref={containerRef} className="layout">
         <div
           style={{
-            left: BOUNDARY_MARGIN + position.x,
-            top: BOUNDARY_MARGIN + position.y,
+            left: `calc(50% + ${position.x}px)`,
+            top: `calc(50% + ${position.y}px)`,
+            transform: `translate(-50%, -50%)`,
           }}
           ref={iconRef}
           className="grab"
