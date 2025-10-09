@@ -44,8 +44,8 @@
 
   /* 플립은 즉시지만, 보이는 변화는 부드럽게 */
   transform: scale(1);
-  transition: transform 180ms ease, bottom 180ms ease, top 180ms ease;
-  will-change: transform, bottom, top;
+  transition: transform 180ms ease;
+  will-change: transform;
 
   position-try-fallbacks: --to-bottom; /* anchor-center 적용 후 앵커 위치가 아래로 내려갈 경우 앵커 위치를 위로 올림 */
 }
@@ -53,6 +53,10 @@
 .layout:has(.grab:active) .tooltip {
   transform: scale(0.95);
   --distance: 0.6em;
+}
+
+.layout:has(.grab:active) .tooltip {
+  transform: translateY(0.4em) scale(0.95);
 }
 
 @position-try --to-bottom {
