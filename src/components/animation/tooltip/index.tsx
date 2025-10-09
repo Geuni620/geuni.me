@@ -45,11 +45,15 @@ export const AnchoredTooltip = () => {
       const deltaX = moveEvent.clientX - startX;
       const deltaY = moveEvent.clientY - startY;
 
-      const minX = -container.width / 2 + icon.width / 2 + BOUNDARY_MARGIN;
-      const maxX = container.width / 2 - icon.width / 2 - BOUNDARY_MARGIN;
+      const minX =
+        -container.width / 2 + Math.floor(icon.width / 2) + BOUNDARY_MARGIN;
+      const maxX =
+        container.width / 2 - Math.floor(icon.width / 2) - BOUNDARY_MARGIN;
 
-      const minY = -container.height / 2 + icon.height / 2 + BOUNDARY_MARGIN;
-      const maxY = container.height / 2 - icon.height / 2 - BOUNDARY_MARGIN;
+      const minY =
+        -container.height / 2 + Math.floor(icon.height / 2) + BOUNDARY_MARGIN;
+      const maxY =
+        container.height / 2 - Math.floor(icon.height / 2) - BOUNDARY_MARGIN;
 
       setPosition({
         x: Math.max(minX, Math.min(initialX + deltaX, maxX)),
@@ -95,7 +99,7 @@ export const AnchoredTooltip = () => {
           style={{
             left: `calc(50% + ${position.x}px)`,
             top: `calc(50% + ${position.y}px)`,
-            transform: `scale(var(--scale))`,
+            transform: `translate(-50%, -50%) scale(var(--scale))`,
           }}
           ref={iconRef}
           className="grab"
@@ -110,11 +114,11 @@ export const AnchoredTooltip = () => {
   );
 };
 
-const Tooltip = ({
-  tooltipRef,
-}: {
+interface TooltipProps {
   tooltipRef: React.RefObject<HTMLDivElement | null>;
-}) => {
+}
+
+const Tooltip = ({ tooltipRef }: TooltipProps) => {
   if (!tooltipRef) return null;
 
   return (
