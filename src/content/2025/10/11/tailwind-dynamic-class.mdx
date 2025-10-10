@@ -1,0 +1,35 @@
+---
+date: "2025-10-11"
+title: "Tailwind CSS Dynamic Class 테스트"
+category: ["개발"]
+summary: "width와 height를 props로 전달했는데, 어떤 경우는 반영되고 어떤 경우는 반영되지 않는다?"
+short: true
+---
+
+import { SandpackWrapper } from "@/components/sandpack";
+import { TAILWIND_DYNAMIC_CLASS } from "./file";
+
+<SandpackWrapper
+  files={TAILWIND_DYNAMIC_CLASS.files}
+  template="react-ts"
+  options={{
+    editorHeight: 600,
+    editorWidthPercentage: 0,
+    externalResources: ["https://cdn.tailwindcss.com"],
+    showConsole: false,
+  }}
+/>
+
+<br />
+
+<SandpackWrapper
+  files={TAILWIND_DYNAMIC_CLASS.files}
+  template="react-ts"
+  options={{
+    editorHeight: 600,
+    editorWidthPercentage: 0,
+    externalResources: ["https://cdn.tailwindcss.com"],
+    showConsole: false,
+  }}
+
+/>
