@@ -106,8 +106,6 @@ interface TooltipProps {
 }
 
 const Tooltip = ({ tooltipRef }: TooltipProps) => {
-  if (!tooltipRef) return null;
-
   return (
     <div ref={tooltipRef} className="tooltip text-sm">
       grab!
