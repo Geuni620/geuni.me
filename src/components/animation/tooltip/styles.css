@@ -1,0 +1,57 @@
+:root {
+  --anchor: "grab";
+}
+
+.layout {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  background-color: #fafafa;
+}
+
+.grab {
+  --scale: 1;
+  position: absolute;
+  anchor-name: --anchor;
+
+  cursor: grab;
+  user-select: none;
+
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: transform 0.3s ease;
+}
+
+.grab:active {
+  --scale: 0.9;
+}
+
+.tooltip {
+  --distance: 1em;
+  --dy-sign: 1;
+
+  position: absolute;
+  position-anchor: --anchor;
+
+  bottom: calc(anchor(top) + var(--distance));
+  justify-self: anchor-center; /* anchor-center: 앵커 중앙 정렬 */
+
+  position-try-fallbacks: --to-bottom; /* anchor-center 적용 후 앵커 위치가 아래로 내려갈 경우 앵커 위치를 위로 올림 */
+  transition: transform 0.1s ease;
+}
+
+.layout:has(.grab:active) .tooltip {
+  transform: translateY(calc(var(--dy-sign) * var(--distance))) scale(0.95);
+}
+
+@position-try --to-bottom {
+  bottom: auto;
+  top: calc(anchor(bottom) + var(--distance));
+  margin: 0 0 var(--distance);
+}
