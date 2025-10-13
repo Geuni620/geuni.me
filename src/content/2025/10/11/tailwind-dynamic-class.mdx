@@ -1,35 +1,42 @@
 ---
-date: "2025-10-11"
-title: "Tailwind CSS Dynamic Class 테스트"
+date: "2025-10-13"
+title: "Tailwind CSS 동적 클래스"
 category: ["개발"]
-summary: "width와 height를 props로 전달했는데, 어떤 경우는 반영되고 어떤 경우는 반영되지 않는다?"
-short: true
+summary: "Tailwind 동적으로 Width, Height 조절하기"
 ---
 
-import { SandpackWrapper } from "@/components/sandpack";
-import { TAILWIND_DYNAMIC_CLASS } from "./file";
+Tailwind CSS(이하 Tailwind)는 동적으로 클래스를 생성하지 않는 것으로 알고 있다.  
+즉, 다음과 같은 코드는 작동하지 않는다.
 
-<SandpackWrapper
-  files={TAILWIND_DYNAMIC_CLASS.files}
-  template="react-ts"
-  options={{
-    editorHeight: 600,
-    editorWidthPercentage: 0,
-    externalResources: ["https://cdn.tailwindcss.com"],
-    showConsole: false,
-  }}
-/>
+```tsx
+const Parent = () => {
+  return (
+    <div>
+      <div className={`w-[${width}px] h-[${height}px]`}>Child</div>
+    </div>
+  );
+};
+```
 
 <br />
 
+import { Layout } from "@/components/layout";
+
+import { DynamicSizeBox } from "./box";
+import { SandpackWrapper } from "@/components/sandpack";
+import { TAILWIND_DYNAMIC_CLASS } from "./file";
+
+## Tailwind 동적 width/height 데모
+
+<DynamicSizeBox initialWidth={150} initialHeight={150} />
+
+## Sandpack 데모
+
 <SandpackWrapper
   files={TAILWIND_DYNAMIC_CLASS.files}
-  template="react-ts"
   options={{
-    editorHeight: 600,
+    visibleFiles: ["/App.tsx", "/tailwind.config.js", "/index.css"],
+    editorHeight: 520,
     editorWidthPercentage: 0,
-    externalResources: ["https://cdn.tailwindcss.com"],
-    showConsole: false,
   }}
-
 />
