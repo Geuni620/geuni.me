@@ -5,7 +5,7 @@ category: ["개발"]
 summary: "Tailwind 동적으로 Width, Height 조절하기"
 ---
 
-Tailwind CSS(이하 Tailwind)는 동적으로 클래스를 생성하지 않는 것으로 알고 있다.  
+Tailwind CSS(이하 Tailwind)는 동적으로 클래스를 생성하지 못한다.  
 즉, 다음과 같은 코드는 작동하지 않는다.
 
 ```tsx
@@ -18,25 +18,120 @@ const Parent = () => {
 };
 ```
 
+Tailwind는 모든 소스 파일을 일반 텍스트로 처리하며, 파일 내 클래스 이름에 사용될 것으로 예상되는 토큰을 찾는다.
+
+이 모든 토큰에 대한 CSS를 생성하려고 시도하며, [프레임워크가 인식하는 유틸리티
+클래스에 매핑되지 않는 토큰은 모두 제거한다.](https://tailwindcss.com/docs/detecting-classes-in-source-files#how-classes-are-detected)
+
+---
+
+## 동작하는 경우
+
+```tsx
+export function ParentComponent() {
+  return (
+    <div>
+      <ChildComponent width={200} height={200} />
+    </div>
+  );
+}
+
+function ChildComponent({ width, height }: { width: number; height: number }) {
+  return (
+    <div className="bg-red-500">
+      <div className={`w-[${width}px] h-[${height}px] bg-blue-500`}>Child</div>
+    </div>
+  );
+}
+```
+
+위 코드는 Width와 Height를 동적으로 조절할 수 있다.  
+`w-[200px] h-[200px]`가 Tailwind의 임의 값(arbitrary value) 문법으로 인식되어 CSS가 생성되기 때문이다.
+
 <br />
 
-import { Layout } from "@/components/layout";
+```tsx
+export function ParentComponent() {
+  return (
+    <div>
+      <ChildComponent width={20} height={20} />
+      {/* <div className="w-[20px] h-[20px]">Child</div> */}
+    </div>
+  );
+}
 
-import { DynamicSizeBox } from "./box";
-import { SandpackWrapper } from "@/components/sandpack";
-import { TAILWIND_DYNAMIC_CLASS } from "./file";
+function ChildComponent({ width, height }: { width: number; height: number }) {
+  return (
+    <div className="bg-red-500">
+      <div className={`w-[${width}px] h-[${height}px] bg-blue-500`}>Child</div>
+    </div>
+  );
+}
+```
 
-## Tailwind 동적 width/height 데모
+위 코드도 동작한다. 비록 주석으로 처리되어 있지만, `w-[20px] h-[20px]`가 소스 코드 내에 완전한 문자열로 존재한다.  
+Tailwind는 빌드 타임에 이를 감지하여 해당 클래스에 대한 CSS를 생성한다.
 
-<DynamicSizeBox initialWidth={150} initialHeight={150} />
+---
 
-## Sandpack 데모
+## 동작하지 않는 경우
 
-<SandpackWrapper
-  files={TAILWIND_DYNAMIC_CLASS.files}
-  options={{
-    visibleFiles: ["/App.tsx", "/tailwind.config.js", "/index.css"],
-    editorHeight: 520,
-    editorWidthPercentage: 0,
-  }}
-/>
+```tsx
+export function ParentComponent() {
+  return (
+    <div>
+      <ChildComponent width={20} height={20} />
+    </div>
+  );
+}
+
+function ChildComponent({ width, height }: { width: number; height: number }) {
+  return (
+    <div className="bg-red-500">
+      <div className={`w-[${width}px] h-[${height}px] bg-blue-500`}>Child</div>
+    </div>
+  );
+}
+```
+
+하지만 위 코드는 동작하지 않는다. 소스 코드 어디에도 `w-[20px] h-[20px]`라는 문자열이 완전한 형태로 존재하지 않기 때문에, Tailwind가 이를 감지하지 못한다.
+
+---
+
+## 해결방법
+
+회사에서 사내 소스코드를 살펴보다가, 동적으로 Tailwind 클래스가 생성되는 것을 보고 그대로 적용했었다. 알고보니, 동적으로 Tailwind 클래스가 생성되는 것은 아니었다.
+
+이는 어딘가에서 생성된 임의의 `w-[<value>px] h-[<value>px]` 클래스를 사용하고 있었기 때문이었다.
+
+props로 내려줄 것이라면, `w-[<value>px] h-[<value>px]` 클래스를 생성하여 사용하면 된다. 그렇지 않다면, inline-style로 적용해주자.
+
+```tsx
+// className 사용
+export function ParentComponent() {
+  return (
+    <div>
+      <ChildComponent className="w-[20px] h-[20px]" />
+    </div>
+  );
+}
+
+function ChildComponent({ className }: { className: string }) {
+  return <div className={className}>Child</div>;
+}
+
+// inline-style 사용
+export function ParentComponent() {
+  return (
+    <div>
+      <ChildComponent width={20} height={20} />
+    </div>
+  );
+}
+
+function ChildComponent({ width, height }: { width: number; height: number }) {
+  return (
+    <div style={{ width: `${width}px`, height: `${height}px` }}>Child</div>
+  );
+}
+```
