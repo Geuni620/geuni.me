@@ -31,29 +31,6 @@ Tailwind는 모든 소스 파일을 일반 텍스트로 처리하며, 파일 내
 export function ParentComponent() {
   return (
     <div>
-      <ChildComponent width={200} height={200} />
-    </div>
-  );
-}
-
-function ChildComponent({ width, height }: { width: number; height: number }) {
-  return (
-    <div className="bg-red-500">
-      <div className={`w-[${width}px] h-[${height}px] bg-blue-500`}>Child</div>
-    </div>
-  );
-}
-```
-
-위 코드는 Width와 Height를 동적으로 조절할 수 있다.  
-`w-[200px] h-[200px]`가 Tailwind의 임의 값(arbitrary value) 문법으로 인식되어 CSS가 생성되기 때문이다.
-
-<br />
-
-```tsx
-export function ParentComponent() {
-  return (
-    <div>
       <ChildComponent width={20} height={20} />
       {/* <div className="w-[20px] h-[20px]">Child</div> */}
     </div>
