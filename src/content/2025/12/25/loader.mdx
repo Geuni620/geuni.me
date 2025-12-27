@@ -1,0 +1,71 @@
+---
+date: "2025-12-25"
+title: "react-router, loader가 동작하지 않는다."
+category: ["개발"]
+summary: "-"
+---
+
+최근 회사에서 다음과 같은 조건의 Task를 할당받았다.
+
+- 현재 웹사이트로 접근하는 모든 유저는 Notice Page로 전환시켜야한다.
+
+처음 요구사항을 보자마자, react-router의 loader를 사용해서 해결할 수 있을 것 같았다.
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Layout />}>
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+    </Route>
+  )
+);
+```
+
+여기서 존재하는 path는 다음과 같다.
+
+- "/"
+- "/service1"
+- "/service2"
+
+이 path로 접근하는 모든 유저는 Notice Page로 전환시켜야한다.
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    // loader를 반영
+    <Route path="/" element={<Layout />} loader={forceRedirect("/notice-page")}>
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+      // Notice Page route 추가
+      <Route path="notice-page" element={<NoticePage />} />
+    </Route>
+  )
+);
+```
+
+테스트를 위해 URL에 endpoint를 각각 특정해서 확인해보니, Notice Page로 전환되는 것을 확인할 수 있었다.
+
+<br />
+
+하지만 Notice Page를 다음과 같이 수정하면 어떻게 될까?
+
+```tsx
+const NoticePage = () => {
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Notice Page</h1>
+      <p>This is Notice page. This is a protected route.</p>
+      <Link to="/">Go to Home</Link> // here!!! 🙋‍♂️
+    </div>
+  );
+};
+```
+
+Notice Page에서 Home으로 이동하는 링크를 추가했다.
+그리고 `Go to Home`버튼을 클릭하면, 어떻게 될까?
+
+테스트를 해보기 전에 나는, Loader가 이를 감지하고 적절히 방지해줄 것이라고 예상했었다.
+하지만 실제로 테스트를 해보니, Home Page로 이동하는 것을 확인할 수 있었다.
