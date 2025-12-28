@@ -1,15 +1,26 @@
 ---
-date: "2025-12-25"
-title: "react-router, loader가 동작하지 않는다."
+date: "2025-12-28"
+title: "웹페이지 내 모든 Route를 한 페이지로 한정하기"
 category: ["개발"]
 summary: "-"
 ---
 
+import { SandpackWrapper } from "@/components/sandpack";
+import {
+  LOADER_REDIRECT_EXAMPLE,
+  LOADER_REDIRECT_WITH_LINK_EXAMPLE,
+} from "./file";
+import { SideNote } from "@/components/layout";
+
+### 요구사항
+
 최근 회사에서 다음과 같은 조건의 Task를 할당받았다.
 
-- 현재 웹사이트로 접근하는 모든 유저는 Notice Page로 전환시켜야한다.
+> 현재 웹사이트로 접근하는 모든 유저를 `Notice Page`로 전환시켜야한다.
 
-처음 요구사항을 보자마자, react-router의 loader를 사용해서 해결할 수 있을 것 같았다.
+요구사항을 보자마자, react-router의 loader를 사용해서 해결할 수 있을 것 같았다.
+
+### Route Loader를 사용한 강제 리다이렉트
 
 ```tsx
 const router = createBrowserRouter(
@@ -23,13 +34,13 @@ const router = createBrowserRouter(
 );
 ```
 
-여기서 존재하는 path는 다음과 같다.
+위 코드에서 존재하는 path는 다음과 같다.
 
 - "/"
 - "/service1"
 - "/service2"
 
-이 path로 접근하는 모든 유저는 Notice Page로 전환시켜야한다.
+이 path로 접근하는 모든 유저는 `Notice Page`로 전환시켜야한다.
 
 ```tsx
 const router = createBrowserRouter(
@@ -46,11 +57,43 @@ const router = createBrowserRouter(
 );
 ```
 
-테스트를 위해 URL에 endpoint를 각각 특정해서 확인해보니, Notice Page로 전환되는 것을 확인할 수 있었다.
+가장 바깥쪽에 존재하는 Route에 loader를 반영했다.
 
-<br />
+```tsx
+const forceRedirect = (path: string) => {
+  return ({ request }: { request: Request }) => {
+    const url = new URL(request.url);
+    const currentPath = url.pathname;
 
-하지만 Notice Page를 다음과 같이 수정하면 어떻게 될까?
+    if (currentPath === path) {
+      console.log(`이미 ${path}에 있음 - 리다이렉트 안 함`);
+
+      return null;
+    }
+
+    return redirect(path);
+  };
+};
+```
+
+이제 `/notice-page`가 아닐 경우, redirect로 notice 페이지로 전환될 것이다.
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>URL에 `/`, `/service1`, `/service2`를 입력해보세요.</small>
+
+### 문제상황
+
+해당 기능을 간략히 구현한 뒤, QA를 요청했다.  
+다른 용무로 디자이너와 상의하는데, 왼쪽 상단에 존재하는 Logo를 클릭하니 로그인 페이지로 떡하니 이동하는게 아닌가..;
+당황해서 자리에 돌아온 뒤, QA 요청을 잠깐 홀딩하고 해당 기능을 수정했다.
 
 ```tsx
 const NoticePage = () => {
@@ -64,8 +107,34 @@ const NoticePage = () => {
 };
 ```
 
-Notice Page에서 Home으로 이동하는 링크를 추가했다.
-그리고 `Go to Home`버튼을 클릭하면, 어떻게 될까?
+예시를 위해, `Notice Page`에 Link태그를 추가했다.  
+그리고 페이지 이동을 시도하면, **페이지 이동이 가능하다.**  
+즉, loader가 동작하지 않는 것이다.
 
-테스트를 해보기 전에 나는, Loader가 이를 감지하고 적절히 방지해줄 것이라고 예상했었다.
-하지만 실제로 테스트를 해보니, Home Page로 이동하는 것을 확인할 수 있었다.
+<SandpackWrapper
+  files={LOADER_REDIRECT_WITH_LINK_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>`Go to Home`버튼을 클릭해보세요.</small>
+
+### 해결방법
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    // loader를 반영
+    <Route path="/" element={<Layout />} loader={forceRedirect("/notice-page")}>
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+      // Notice Page route 추가
+      <Route path="notice-page" element={<NoticePage />} />
+    </Route>
+  )
+);
+```
