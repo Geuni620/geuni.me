@@ -139,9 +139,16 @@ const router = createBrowserRouter(
 );
 ```
 
-먼저 loader를 추가했던 Route부터 잘못되었다.
+먼저 loader를 추가했던 Route부터 잘못되었다.  
+로더가 호출되는 조건과, [재호출](https://reactrouter.com/6.22.0/route/should-revalidate)되는 조건을 살펴보면 다음과 같다.
 
-부모에 감싸진 loader는
+호출되는 조건
+
+- 즉, 새로 매칭되는 route의 loader 실행
+
+재호출되는 조건
+
+-
 
 ### Link → a태그로 변경
 
