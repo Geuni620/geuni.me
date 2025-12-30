@@ -9,6 +9,8 @@ import { SandpackWrapper } from "@/components/sandpack";
 import {
   LOADER_REDIRECT_EXAMPLE,
   LOADER_REDIRECT_WITH_LINK_EXAMPLE,
+  LOADER_REDIRECT_WITH_SHOULD_REVALIDATE_EXAMPLE,
+  LOADER_REDIRECT_WITH_ANCHOR_TAG_EXAMPLE,
 } from "./file";
 import { SideNote } from "@/components/layout";
 
@@ -139,19 +141,88 @@ const router = createBrowserRouter(
 );
 ```
 
-먼저 loader를 추가했던 Route부터 잘못되었다.  
-로더가 호출되는 조건과, [재호출](https://reactrouter.com/6.22.0/route/should-revalidate)되는 조건을 살펴보면 다음과 같다.
+먼저 loader를 추가했던 Route를 다시 살펴보자.
 
-호출되는 조건
+[react router issue](https://github.com/remix-run/react-router/discussions/9327#discussioncomment-3954703) 중 메인테이너가 코멘트 남긴 부분을 보면, 아래와 같이 정리할 수 있다.
 
-- 즉, 새로 매칭되는 route의 loader 실행
+- 모든 로더는 병렬로 호출된다.
+- 중첩 라우팅에서는 재사용된 라우트의 로더가 재실행되지 않는다.
+  - 따라서 `/parent`에서 로더가 확인되면, `/parent/child-1`에서 `/parent/child-2`로 이동할 때 재확인되지 않습니다.
 
-재호출되는 조건
+조금 의역하자면, `/parent` loader에만 넣어두면, 같은 부모를 공유하는 자식 라우트들 사이를 이동할 때 해당 검증은 재실행되지 않는다.
 
--
+그래서 한번 loader가 동작한 뒤, Link로 Go to Home을 동작시키면 이동이 가능했던 것이다.
+
+그럼에도 loader가 path의 이동마다 동작하도록 만들고 싶다면, [shouldRevalidate](https://reactrouter.com/6.22.0/route/should-revalidate#shouldrevalidate)를 사용해야한다.
+
+### shouldRevalidate
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    // loader를 반영
+    <Route
+      path="/"
+      element={<Layout />}
+      loader={forceRedirect("/notice-page")}
+      shouldRevalidate={() => true} // shouldRevalidate true
+    >
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+      // Notice Page route 추가
+      <Route path="notice-page" element={<NoticePage />} />
+    </Route>
+  )
+);
+```
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_WITH_SHOULD_REVALIDATE_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>
+  `Go to Home`버튼을 클릭해보세요. 이제 리다이렉트가 정상 동작합니다.
+</small>
+
+이렇게하면, shouldRevalidate가 각 path마다 재검증하여 loader가 모두 동작한다.
 
 ### Link → a태그로 변경
 
-[Client Side Routing](https://reactrouter.com/6.22.0/start/tutorial#client-side-routing)
+```tsx
+const NoticePage = () => {
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Notice Page</h1>
+      <p>This is Notice page. This is a protected route.</p>
+      // <Link to="/">Go to Home</Link>
+      <a href="/">Go to Home</a> // here!!! 🙋‍♂️
+    </div>
+  );
+};
+```
 
-Link태그가 아닌 a태그로 변경했을 때, client side routing이 아닌, 전통적인
+Link를 a태그로 변경했을 때, [Client Side Routing](https://reactrouter.com/6.22.0/start/tutorial#client-side-routing)이 아닌 링크를 통한 document를 새롭게 내려받게 된다.  
+즉 React Router의 client-side navigation을 우회하고, 브라우저 기본 네비게이션에 의해 document가 새로 로드된다.
+
+앱이 처음 로드되는 것과 동일한 흐름으로 동작하며, 해당 URL에 매칭되는 모든 route의 loader가 초기 로딩 단계에서 다시 실행된다.
+이 때문에 loader가 동작한다.
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_WITH_ANCHOR_TAG_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>
+  `Go to Home (a 태그)` 버튼을 클릭해보세요. <br />a 태그는 document를 새로
+  로드하기 때문에 loader가 동작합니다.
+</small>
