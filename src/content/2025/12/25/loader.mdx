@@ -153,13 +153,18 @@ const router = createBrowserRouter(
 
 조금 의역하자면, `/parent` loader에만 넣어두면, 같은 부모를 공유하는 자식 라우트들 사이를 이동할 때 해당 검증은 재실행되지 않는다.
 
-그래서 한번 loader가 동작한 뒤, Link로 Go to Home을 동작시키면 이동이 가능했던 것이다.
+즉, root의 loader는 **해당 이동에서 ‘재검증(revalidation) 대상’으로 판단되지 않아 재실행되지 않는다**
+
+그래서 loader가 동작한 뒤, Link로 Go to Home을 동작시키면 이동이 가능했던 것이다. (재검증 대상으로 판단 x)
 
 ## 해결방법
 
 ### shouldRevalidate
 
 loader가 path의 이동마다 동작하도록 만들고 싶다면, [shouldRevalidate](https://reactrouter.com/6.22.0/route/should-revalidate#shouldrevalidate)를 설정하면 가능하다.
+
+shouldRevalidate는 해당 라우트가 재검증 대상이라고 판단되는 상황에서 호출되며,
+여기서 true를 반환하면 loader가 다시 실행된다.
 
 ```tsx
 const router = createBrowserRouter(
@@ -194,10 +199,9 @@ const router = createBrowserRouter(
   `Go to Home`버튼을 클릭해보세요. 이제 리다이렉트가 정상 동작합니다.
 </small>
 
-shouldRevalidate가 각 path마다 재검증하여 loader가 모두 동작한다.  
-특정 path에서만 loader가 재검증되도록 설정할 수도 있다.
-
 ![](./should-revalidate-log.png)
+
+특정 path에서만 loader가 재검증되도록 설정할 수도 있다.
 
 <br />
 
@@ -292,19 +296,19 @@ const AppGuard = () => {
 - loader를 사용하는게 이 기능의 적절한 사례인가?
 - SPA환경을 최대한 유지할 수 있는가?
 
-loader는 적절한 사례가 아니라는 생각이 들었다.  
-shouldRevalidate를 설정하는 것도 복잡도를 올리는 것 같았다.
+이 기능은 데이터 로딩과 무관한 전역 UI 정책(점검 모드)에 가까웠고,
+React Router의 loader 재검증 정책을 변경하면서까지 구현할 필요는 없다고 판단했다.
 
-또한 Link를 a태그로 변경하는 것도 내키지 않았다.  
+또한 Link를 a태그로 변경하는 방법도 적절하지 않다고 생각했다.
 react-router로 최대한 유지하고 싶었으며, a태그로 SPA 환경을 깨트리고 싶지 않았다.
 
-SPA 환경이 깨지면 그 때부터, 브라우저의 로드환경을 고려해야한다. 개발하다보면 고려해야할 부분을 하나씩 추가하는게 디버깅을 어렵게 만든다고 생각한다.  
-그래서 최대한 단순하게, 고려하고 싶었다.
-내가 라이브러리를 쉽게 적용하지 않는 것도 이 때문이다. (추가할수록 신경써야할 게 많아지니까)
+SPA 환경이 깨지면 그 때부터, 브라우저의 로드환경을 고려해야한다.  
+고려해야할 부분을 하나씩 추가하는게 디버깅을 어렵게 만든다고 생각한다.
 
 그래서 가장 적절한 방법은 Guard라는 생각이 들었다.  
-또한, 프로덕트에는 여러 Guard가 존재하는데, 적절한 deps에 Guard 하나를 추가해주면 되었다.
+Guard는 렌더 단계에서 동작하지만, 이 케이스에서는 비동기 조건이 없기 때문에 UX 플래시나 부작용 없이 가장 단순한 해결책이었다.
 
+또한, 프로덕트에는 여러 Guard가 존재하는데, 적절한 deps에 Guard 하나를 추가해주면 되었다.  
 추후 해당 기능을 제거할 때도, Guard만 제거하면 영향이 없다.
 
 <br />
@@ -317,10 +321,7 @@ SPA 환경이 깨지면 그 때부터, 브라우저의 로드환경을 고려해
 또한, loader가 동작하지 않는 이유를 찾는데 오랜 시간을 썼다.  
 remix도 react-router 기반이긴하지만, react-router docs에 명확히 기재되어있길 원했는데, 내가 못 찾는건지.. 잘 안나오더라
 
-결국 shouldRevalidate에서 loader가 [재검증되는 사례](https://reactrouter.com/6.30.2/route/should-revalidate)를 확인한 뒤 이해할 수 있었다.  
-remix가 react-router가 되었다가, 다시 react 진영을 벗어나 새로운 프레임워크를 만들고 있다고 한다.
-
-히스토리를 이해하고 있지 않았다면 더 복잡했을 것 같다.. 😭
+결국 shouldRevalidate에서 loader가 [재검증되는 사례](https://reactrouter.com/6.30.2/route/should-revalidate)를 확인한 뒤 이해할 수 있었다.
 
 ## 참고자료
 
