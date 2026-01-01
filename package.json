@@ -2,6 +2,7 @@
   "name": "geuni-me",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.26.1",
   "scripts": {
     "predev": "node scripts/pre-build.mjs",
     "dev": "next dev ",
@@ -40,6 +41,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "fs-extra": "^11.3.0",
+    "glob": "^13.0.0",
     "gray-matter": "^4.0.3",
     "postcss": "^8",
     "remark-frontmatter": "^5.0.0",
