@@ -193,7 +193,12 @@ const router = createBrowserRouter(
   `Go to Home`버튼을 클릭해보세요. 이제 리다이렉트가 정상 동작합니다.
 </small>
 
-이렇게하면, shouldRevalidate가 각 path마다 재검증하여 loader가 모두 동작한다.
+shouldRevalidate가 각 path마다 재검증하여 loader가 모두 동작한다.  
+특정 path에서만 loader가 재검증되도록 설정할 수도 있다.
+
+![](./should-revalidate-log.png)
+
+<br />
 
 ### Link → a태그로 변경
 
