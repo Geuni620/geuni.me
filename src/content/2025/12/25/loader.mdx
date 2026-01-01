@@ -11,6 +11,7 @@ import {
   LOADER_REDIRECT_WITH_LINK_EXAMPLE,
   LOADER_REDIRECT_WITH_SHOULD_REVALIDATE_EXAMPLE,
   LOADER_REDIRECT_WITH_ANCHOR_TAG_EXAMPLE,
+  GUARD_REDIRECT_EXAMPLE,
 } from "./file";
 import { SideNote } from "@/components/layout";
 
@@ -238,6 +239,90 @@ Link를 a태그로 변경했을 때, [Client Side Routing](https://reactrouter.c
 
 ### App Guard
 
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Layout />}>
+      <Route element={<AppGuard />}>
+        <Route index element={<HomePage />} />
+        <Route path="service1" element={<Service1Page />} />
+        <Route path="service2" element={<Service2Page />} />
+        <Route path="notice-page" element={<NoticePage />} />
+      </Route>
+    </Route>
+  )
+);
+```
+
+loader를 사용하지 않고, Guard를 사용하면, 매 경로이동마다 검증을 통해 Navigate 시킬 수 있다.
+
+```tsx
+const AppGuard = () => {
+  const location = useLocation();
+  const maintenancePath = "/notice-page";
+
+  if (location.pathname !== maintenancePath) {
+    console.log("redirect to", location.pathname);
+
+    return <Navigate to={maintenancePath} replace />;
+  }
+
+  return <Outlet />;
+};
+```
+
+<SandpackWrapper
+  files={GUARD_REDIRECT_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>`Go to Home`버튼을 클릭해보세요.</small>
+
+## 정리
+
+### Guard로 결정
+
+처음엔 loader를 사용해서 구현했다가, 여러 방법을 검색해보고 난 뒤 알게된 내용을 바탕으로 **Guard를 사용하기로 결정**했다.
+
+- 간단히 적용한 뒤, 제거할 수 있는가?
+- loader를 사용하는게 이 기능의 적절한 사례인가?
+- SPA환경을 최대한 유지할 수 있는가?
+
+loader는 적절한 사례가 아니라는 생각이 들었다.  
+shouldRevalidate를 설정하는 것도 복잡도를 올리는 것 같았다.
+
+또한 Link를 a태그로 변경하는 것도 내키지 않았다.  
+react-router로 최대한 유지하고 싶었으며, a태그로 SPA 환경을 깨트리고 싶지 않았다.
+
+SPA 환경이 깨지면 그 때부터, 브라우저의 로드환경을 고려해야한다. 개발하다보면 고려해야할 부분을 하나씩 추가하는게 디버깅을 어렵게 만든다고 생각한다.  
+그래서 최대한 단순하게, 고려하고 싶었다.
+내가 라이브러리를 쉽게 적용하지 않는 것도 이 때문이다. (추가할수록 신경써야할 게 많아지니까)
+
+그래서 가장 적절한 방법은 Guard라는 생각이 들었다.  
+또한, 프로덕트에는 여러 Guard가 존재하는데, 적절한 deps에 Guard 하나를 추가해주면 되었다.
+
+추후 해당 기능을 제거할 때도, Guard만 제거하면 영향이 없다.
+
+<br />
+
+### 느낀 점
+
+생각보다 react-router docs는 친절하지 않다.  
+아니 너무 친절해서 문제인 것 같기도하다. 정보가 너무 많다보니 필요한 정보 찾기가 너무 어렵다.
+
+또한, loader가 동작하지 않는 이유를 찾는데 오랜 시간을 썼다.  
+remix도 react-router 기반이긴하지만, react-router docs에 명확히 기재되어있길 원했는데, 내가 못 찾는건지.. 잘 안나오더라
+
+결국 shouldRevalidate에서 loader가 [재검증되는 사례](https://reactrouter.com/6.30.2/route/should-revalidate)를 확인한 뒤 이해할 수 있었다.  
+remix가 react-router가 되었다가, 다시 react 진영을 벗어나 새로운 프레임워크를 만들고 있다고 한다.
+
+히스토리를 이해하고 있지 않았다면 더 복잡했을 것 같다.. 😭
+
 ## 참고자료
 
-[React-Router - Run a parent route loader function each time one if its sub-routes is matched](https://stackoverflow.com/questions/77133906/react-router-run-a-parent-route-loader-function-each-time-one-if-its-sub-route?utm_source=chatgpt.com)
+[React-Router - Run a parent route loader function each time one if its sub-routes is matched](https://stackoverflow.com/questions/77133906/react-router-run-a-parent-route-loader-function-each-time-one-if-its-sub-route?utm_source=chatgpt.com)  
+[React-Router - shouldRevalidate](https://reactrouter.com/6.22.0/route/should-revalidate#shouldrevalidate)
