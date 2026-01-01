@@ -1,0 +1,329 @@
+---
+date: "2025-12-28"
+title: "웹페이지 내 모든 Route를 한 페이지로 한정하기"
+category: ["개발"]
+summary: "-"
+---
+
+import { SandpackWrapper } from "@/components/sandpack";
+import {
+  LOADER_REDIRECT_EXAMPLE,
+  LOADER_REDIRECT_WITH_LINK_EXAMPLE,
+  LOADER_REDIRECT_WITH_SHOULD_REVALIDATE_EXAMPLE,
+  LOADER_REDIRECT_WITH_ANCHOR_TAG_EXAMPLE,
+  GUARD_REDIRECT_EXAMPLE,
+} from "./file";
+import { SideNote } from "@/components/layout";
+
+## 요구사항
+
+최근 회사에서 다음과 같은 조건의 Task를 할당받았다.
+
+> 현재 웹사이트로 접근하는 모든 유저를 `Notice Page`로 전환시켜야한다.
+
+요구사항을 보자마자, react-router의 loader를 사용해서 해결할 수 있을 것 같았다.
+
+## Route Loader를 사용한 강제 리다이렉트
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Layout />}>
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+    </Route>
+  )
+);
+```
+
+위 코드에서 존재하는 path는 다음과 같다.
+
+- "/"
+- "/service1"
+- "/service2"
+
+이 path로 접근하는 모든 유저는 `Notice Page`로 전환시켜야한다.
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    // loader를 반영
+    <Route path="/" element={<Layout />} loader={forceRedirect("/notice-page")}>
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+      // Notice Page route 추가
+      <Route path="notice-page" element={<NoticePage />} />
+    </Route>
+  )
+);
+```
+
+가장 바깥쪽에 존재하는 Route에 loader를 반영했다.
+
+```tsx
+const forceRedirect = (path: string) => {
+  return ({ request }: { request: Request }) => {
+    const url = new URL(request.url);
+    const currentPath = url.pathname;
+
+    if (currentPath === path) {
+      console.log(`이미 ${path}에 있음 - 리다이렉트 안 함`);
+
+      return null;
+    }
+
+    return redirect(path);
+  };
+};
+```
+
+이제 `/notice-page`가 아닐 경우, redirect로 notice 페이지로 전환될 것이다.
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>URL에 `/`, `/service1`, `/service2`를 입력해보세요.</small>
+
+## 문제상황
+
+해당 기능을 간략히 구현한 뒤, QA를 요청했다.  
+다른 용무로 디자이너와 상의하는데, 왼쪽 상단에 존재하는 Logo를 클릭하니 로그인 페이지로 떡하니 이동하는게 아닌가..;
+
+당황해서 자리에 돌아온 뒤, QA 요청을 잠깐 홀딩하고 해당 기능을 수정했다.
+
+```tsx
+const NoticePage = () => {
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Notice Page</h1>
+      <p>This is Notice page. This is a protected route.</p>
+      <Link to="/">Go to Home</Link> // here!!! 🙋‍♂️
+    </div>
+  );
+};
+```
+
+예시를 위해, `Notice Page`에 Link태그를 추가했다.  
+그리고 페이지 이동을 시도하면, **페이지 이동이 가능하다.**  
+즉, loader가 동작하지 않는 것이다.
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_WITH_LINK_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>`Go to Home`버튼을 클릭해보세요.</small>
+
+## 원인
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    // loader를 반영
+    <Route path="/" element={<Layout />} loader={forceRedirect("/notice-page")}>
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+      // Notice Page route 추가
+      <Route path="notice-page" element={<NoticePage />} />
+    </Route>
+  )
+);
+```
+
+먼저 loader를 추가했던 Route를 다시 살펴보자.
+
+[react router issue](https://github.com/remix-run/react-router/discussions/9327#discussioncomment-3954703) 중 메인테이너가 코멘트 남긴 부분을 보면, 아래와 같이 정리할 수 있다.
+
+- 모든 로더는 병렬로 호출된다.
+- 중첩 라우팅에서는 재사용된 라우트의 로더가 재실행되지 않는다.
+  - 따라서 `/parent`에서 로더가 확인되면, `/parent/child-1`에서 `/parent/child-2`로 이동할 때 재확인되지 않습니다.
+
+조금 의역하자면, `/parent` loader에만 넣어두면, 같은 부모를 공유하는 자식 라우트들 사이를 이동할 때 해당 검증은 재실행되지 않는다.
+
+즉, root의 loader는 **해당 이동에서 ‘재검증(revalidation) 대상’으로 판단되지 않아 재실행되지 않는다**
+
+그래서 loader가 동작한 뒤, Link로 Go to Home을 동작시키면 이동이 가능했던 것이다. (재검증 대상으로 판단 x)
+
+## 해결방법
+
+### shouldRevalidate
+
+loader가 path의 이동마다 동작하도록 만들고 싶다면, [shouldRevalidate](https://reactrouter.com/6.22.0/route/should-revalidate#shouldrevalidate)를 설정하면 가능하다.
+
+shouldRevalidate는 해당 라우트가 재검증 대상이라고 판단되는 상황에서 호출되며,
+여기서 true를 반환하면 loader가 다시 실행된다.
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    // loader를 반영
+    <Route
+      path="/"
+      element={<Layout />}
+      loader={forceRedirect("/notice-page")}
+      shouldRevalidate={() => true} // shouldRevalidate true
+    >
+      <Route index element={<HomePage />} />
+      <Route path="service1" element={<Service1Page />} />
+      <Route path="service2" element={<Service2Page />} />
+      // Notice Page route 추가
+      <Route path="notice-page" element={<NoticePage />} />
+    </Route>
+  )
+);
+```
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_WITH_SHOULD_REVALIDATE_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>
+  `Go to Home`버튼을 클릭해보세요. 이제 리다이렉트가 정상 동작합니다.
+</small>
+
+![](./should-revalidate-log.png)
+
+특정 path에서만 loader가 재검증되도록 설정할 수도 있다.
+
+<br />
+
+### Link → a태그로 변경
+
+```tsx
+const NoticePage = () => {
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Notice Page</h1>
+      <p>This is Notice page. This is a protected route.</p>
+      // <Link to="/">Go to Home</Link>
+      <a href="/">Go to Home</a> // here!!! 🙋‍♂️
+    </div>
+  );
+};
+```
+
+Link를 a태그로 변경했을 때, [Client Side Routing](https://reactrouter.com/6.22.0/start/tutorial#client-side-routing)이 아닌 링크를 통한 document를 새롭게 내려받게 된다.
+
+즉 React Router의 client-side navigation을 우회하고, 브라우저 기본 네비게이션에 의해 document가 새로 로드된다.
+
+앱이 처음 로드되는 것과 동일한 흐름으로 동작하며, 해당 URL에 매칭되는 모든 route의 loader가 초기 로딩 단계에서 다시 실행된다.
+이 때문에 loader가 동작한다.
+
+<SandpackWrapper
+  files={LOADER_REDIRECT_WITH_ANCHOR_TAG_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>
+  `Go to Home (a 태그)` 버튼을 클릭해보세요. <br />a 태그는 document를 새로
+  로드하기 때문에 loader가 동작합니다.
+</small>
+
+### App Guard
+
+```tsx
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Layout />}>
+      <Route element={<AppGuard />}>
+        <Route index element={<HomePage />} />
+        <Route path="service1" element={<Service1Page />} />
+        <Route path="service2" element={<Service2Page />} />
+        <Route path="notice-page" element={<NoticePage />} />
+      </Route>
+    </Route>
+  )
+);
+```
+
+loader를 사용하지 않고, Guard를 사용하면, 매 경로이동마다 검증을 통해 Navigate 시킬 수 있다.
+
+```tsx
+const AppGuard = () => {
+  const location = useLocation();
+  const maintenancePath = "/notice-page";
+
+  if (location.pathname !== maintenancePath) {
+    console.log("redirect to", location.pathname);
+
+    return <Navigate to={maintenancePath} replace />;
+  }
+
+  return <Outlet />;
+};
+```
+
+<SandpackWrapper
+  files={GUARD_REDIRECT_EXAMPLE.files}
+  options={{
+    editorHeight: 500,
+    editorWidthPercentage: 0,
+    showConsoleButton: false,
+  }}
+/>
+
+<small>`Go to Home`버튼을 클릭해보세요.</small>
+
+## 정리
+
+### Guard로 결정
+
+처음엔 loader를 사용해서 구현했다가, 여러 방법을 검색해보고 난 뒤 알게된 내용을 바탕으로 **Guard를 사용하기로 결정**했다.
+
+- 간단히 적용한 뒤, 제거할 수 있는가?
+- loader를 사용하는게 이 기능의 적절한 사례인가?
+- SPA환경을 최대한 유지할 수 있는가?
+
+이 기능은 데이터 로딩과 무관한 전역 UI 정책(점검 모드)에 가까웠고,
+React Router의 loader 재검증 정책을 변경하면서까지 구현할 필요는 없다고 판단했다.
+
+또한 Link를 a태그로 변경하는 방법도 적절하지 않다고 생각했다.
+react-router로 최대한 유지하고 싶었으며, a태그로 SPA 환경을 깨트리고 싶지 않았다.
+
+SPA 환경이 깨지면 그 때부터, 브라우저의 로드환경을 고려해야한다.  
+고려해야할 부분을 하나씩 추가하는게 디버깅을 어렵게 만든다고 생각한다.
+
+그래서 가장 적절한 방법은 Guard라는 생각이 들었다.  
+Guard는 렌더 단계에서 동작하지만, 이 케이스에서는 비동기 조건이 없기 때문에 UX 플래시나 부작용 없이 가장 단순한 해결책이었다.
+
+또한, 프로덕트에는 여러 Guard가 존재하는데, 적절한 deps에 Guard 하나를 추가해주면 되었다.  
+추후 해당 기능을 제거할 때도, Guard만 제거하면 영향이 없다.
+
+<br />
+
+### 느낀 점
+
+생각보다 react-router docs는 친절하지 않다.  
+아니 너무 친절해서 문제인 것 같기도하다. 정보가 너무 많다보니 필요한 정보 찾기가 너무 어렵다.
+
+또한, loader가 동작하지 않는 이유를 찾는데 오랜 시간을 썼다.  
+remix도 react-router 기반이긴하지만, react-router docs에 명확히 기재되어있길 원했는데, 내가 못 찾는건지.. 잘 안나오더라
+
+결국 shouldRevalidate에서 loader가 [재검증되는 사례](https://reactrouter.com/6.30.2/route/should-revalidate)를 확인한 뒤 이해할 수 있었다.
+
+## 참고자료
+
+[React-Router - Run a parent route loader function each time one if its sub-routes is matched](https://stackoverflow.com/questions/77133906/react-router-run-a-parent-route-loader-function-each-time-one-if-its-sub-route?utm_source=chatgpt.com)  
+[React-Router - shouldRevalidate](https://reactrouter.com/6.22.0/route/should-revalidate#shouldrevalidate)
