@@ -1,0 +1,52 @@
+---
+date: "2026-05-24"
+title: "NODE_ENV와 MODE"
+category: ["개발"]
+summary: "너무 헷갈려요."
+short: true
+---
+
+### DevTools가 노출되지 않는다.
+
+Tanstack-Query의 DevTools는 [Production 빌드 시에는 노출되지 않는다.](https://tanstack.com/query/latest/docs/framework/react/devtools#devtools-in-production)
+하루는 DevTools를 통해 무효화되는 것을 확인하기 위해 DevTools가 필요했다.
+
+로컬에서 port를 띄워서 확인하는데 DevTools의 아이콘이 노출되지 않았다.  
+DevTools가 설치되지 않은건가 싶어, package.json과 root.ts를 살펴봤을 때 적절히 반영되어있었다.
+
+```json
+"@tanstack/react-query-devtools": "^5.20.5",
+```
+
+```tsx
+//
+export const Provider = ({ children }) => (
+  <QueryClientProvider client={queryClient}>
+    {children}
+    <ReactQueryDevtools />
+  </QueryClientProvider>
+);
+```
+
+하지만 Devtools는 노출되고 있지 않았다.
+
+<br />
+
+### dev, staging, master 각각의 .env
+
+팀 내에서 dev, staging, master 서버를 직접 운영하며, 각각의 목적이 다르다.
+
+- dev: 개발자가 기능을 개발하고 테스트하는 환경
+- staging: 프로덕트 직군이 릴리즈 전 시나리오를 검증하는 환경
+- master: 실제 사용자가 접속하는 production 환경
+
+이처럼 환경마다 목적과 사용자가 다르기 때문에, 애플리케이션이 바라봐야 하는 설정값도 달라진다.  
+따라서 하나의 `.env`로 관리하기보단 각 환경에 맞는 `.env` 파일로 분리해 관리하는 것이 안전하다.
+
+그럼 이 환경을 결정하는건 뭘까? 뭐라고 부르는 걸까?
+
+<br />
+
+### NODE_ENV와 Mode
+
+위에 "DevTools가 노출되지 않는다."에서 언급한 내용은 **NODE_ENV**에 영향을 받는다.
