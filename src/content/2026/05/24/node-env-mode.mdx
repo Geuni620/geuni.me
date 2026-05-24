@@ -49,4 +49,42 @@ export const Provider = ({ children }) => (
 
 ### NODE_ENV와 Mode
 
-위에 "DevTools가 노출되지 않는다."에서 언급한 내용은 **NODE_ENV**에 영향을 받는다.
+위에 "DevTools가 노출되지 않는다."에서 언급한 내용은 **NODE_ENV**에 영향을 받는다.  
+NODE_ENV는 어떤 값이던 넣을 수 있다.  
+하지만 통상적으로 development와 production으로 관리되는 것으로 보인다.
+
+Vite 기준으로 아래와 같이 NODE_ENV가 결정된다.
+
+```json
+{
+  "scripts": {
+    "dev": "vite", // NODE_ENV === "development"
+    "dev:node-env": "NODE_ENV=geuni vite", // process.env.NODE_ENV === "geuni"
+    "build": "tsc -b && vite build" /// process.env.NODE_ENV === "production"
+  }
+}
+```
+
+즉, Vite 기준으로 build 했을 때는 production이며, dev 서버를 로컬에서 띄웠을 땐, development이다.
+
+<br />
+
+dev, staging, master 각각의 .env"에서 언급한 내용은 **MODE**의 영향을 받는다.
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "dev:development": "vite --mode development", // MODE === "development"
+    "dev:staging": "vite --mode staging", // MODE === "staging"
+    "dev:production": "vite --mode production" // MODE === "production"
+  }
+}
+```
+
+<br />
+
+### 모노레포, NX
+
+위 케이스를 이해했다면 내가 직접적으로 헷갈렸던 구간을 정리해보자.  
+모노레포에서 NX를 사용하여 해당 부분을 이해해보자.
