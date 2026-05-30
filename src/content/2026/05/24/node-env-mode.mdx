@@ -11,6 +11,7 @@ import {
   NX_SERVE_CONFIGURATION_ROWS,
   NxConfigurationTable,
 } from "./nx-configuration-table";
+import { SideNote } from "@/components/layout";
 
 ### 문제상황 1.
 
@@ -156,16 +157,18 @@ dev를 실행했을 땐 development로 NODE_ENV가 결정된다.
 }
 ```
 
-위 project.json을 기준으로 `nx run <project>:serve:development`를 실행했다면,  
-NX의 configuration은 development이며, Vite의 MODE도 development → .env.development가 로드된다.
+위 project.json을 기준으로 `nx run <project>:serve:development`를 실행했다면, Vite의 MODE는 development이며 .env.development가 로드된다.
 
 NODE_ENV는 NX의 configuration이 직접 결정하는 값은 아니다.
 
-Vite 기준에서는 dev server를 실행하면 `NODE_ENV=development`, build를 실행하면 `NODE_ENV=production`으로 동작한다.  
-[Vite NODE_ENV and Modes](https://vite.dev/guide/env-and-mode#node-env-and-modes)
+<SideNote>
+  [Vite NODE_ENV and
+  Modes](https://vite.dev/guide/env-and-mode#node-env-and-modes)
+</SideNote>
 
-즉, `nx run <project>:serve:development`를 실행했다면 당연히 `NODE_ENV=development`일 것이라고 생각했다.  
-하지만 실제로는 `NODE_ENV=production`이었다.
+Vite 기준에서는 dev server를 실행하면 `NODE_ENV=development`, build를 실행하면 `NODE_ENV=production`으로 동작한다.
+
+즉, `nx run <project>:serve:development`를 실행했다면 `NODE_ENV=development`일 것이라고 생각했다. 하지만 실제로는 `NODE_ENV=production`이었다.
 
 이유는 `@nx/vite:dev-server`가 `serve` target만 보는 것이 아니라, `options.buildTarget`으로 지정된 `build` target의 설정도 참조하기 때문이다.
 
@@ -181,7 +184,8 @@ Vite 기준에서는 dev server를 실행하면 `NODE_ENV=development`, build를
 
 그래서 Tanstack Query DevTools가 노출되지 않았다.
 
-물론 `build 내 defaultConfiguration`을 `production`에서 `development`로 바꾸면 DevTools는 다시 노출된다.  
+물론 `build 내 defaultConfiguration`을 `production`에서 `development`로 바꾸면 DevTools는 다시 노출된다.
+
 하지만 이 방식은 `nx build <project>`의 기본 동작까지 development build로 바꿀 수 있기 때문에 좋은 해결책은 아니다.
 
 더 안전한 방법은 `serve` target에서 사용할 `buildTarget`을 configuration까지 명시하는 것이다.
