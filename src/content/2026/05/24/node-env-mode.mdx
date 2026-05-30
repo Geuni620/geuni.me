@@ -1,0 +1,220 @@
+---
+date: "2026-05-30"
+title: "Vite의 NODE_ENV와 MODE, NX의 Configuration"
+category: ["개발"]
+summary: "너무 헷갈려요."
+short: true
+---
+
+import {
+  NX_BUILD_CONFIGURATION_ROWS,
+  NX_SERVE_CONFIGURATION_ROWS,
+  NxConfigurationTable,
+} from "./nx-configuration-table";
+import { SideNote } from "@/components/layout";
+
+### 문제상황 1.
+
+> Tanstack-Query의 DevTools는 [Production 빌드 시에는 노출되지 않는다.](https://tanstack.com/query/latest/docs/framework/react/devtools#devtools-in-production)
+
+하루는 DevTools를 통해 무효화(Query Invalidation)되는 것을 확인하기 위해 DevTools가 필요했다.
+
+로컬에서 port를 띄워서 확인하는데 DevTools의 아이콘이 노출되지 않았다.  
+DevTools가 설치되지 않은건가 싶어, package.json과 root.ts를 살펴봤을 때 적절히 반영되어있었다.
+
+```json
+"@tanstack/react-query-devtools": "^5.20.5",
+```
+
+```tsx
+//
+export const Provider = ({ children }) => (
+  <QueryClientProvider client={queryClient}>
+    {children}
+    <ReactQueryDevtools />
+  </QueryClientProvider>
+);
+```
+
+하지만 Devtools는 노출되고 있지 않았다.
+
+### 문제상황 2.
+
+팀 내에서 `dev`, `staging`, `master` 서버를 직접 운영하며, 각각의 목적이 다르다.
+
+- dev: 개발자가 기능을 개발하고 테스트하는 환경
+- staging: 프로덕트 직군이 릴리즈 전 시나리오를 검증하는 환경
+- master: 실제 사용자가 접속하는 production 환경
+
+이처럼 환경마다 목적과 사용자가 다르기 때문에, 애플리케이션이 바라봐야 하는 설정값도 달라진다.  
+따라서 하나의 `.env`로 관리하기보단 각 환경에 맞는 `.env` 파일로 분리해 관리하는 것이 안전하다.
+
+그럼 이 환경을 결정하는건 무엇일까?
+
+<br />
+
+### NODE_ENV와 MODE
+
+위 `문제상황 1`에서 언급한 내용은 **NODE_ENV**에 영향을 받는다.
+
+NODE_ENV는 어떤 값이던 넣을 수 있다.  
+하지만 통상적으로 development와 production으로 관리되는 것으로 보인다.
+
+Vite 기준으로 아래와 같이 NODE_ENV가 결정된다.
+
+```jsonc
+// package.json
+{
+  "scripts": {
+    "dev": "vite", // process.env.NODE_ENV === "development"
+    "dev:node-env": "NODE_ENV=geuni vite", // process.env.NODE_ENV === "geuni"
+    "build": "tsc -b && vite build", /// process.env.NODE_ENV === "production"
+  },
+}
+```
+
+즉 package.json 기준으로 build를 실행했을 땐, production  
+dev를 실행했을 땐 development로 NODE_ENV가 결정된다.
+
+임의로 지정하고 싶다면, package.json script 내 NODE_ENV flag를 추가하면 된다.
+
+<br />
+
+`문제상황 2`에서 언급된 내용은 MODE에 대한 영향을 받는다.
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "dev:development": "vite --mode development", // MODE === "development"
+    "dev:staging": "vite --mode staging", // MODE === "staging"
+    "dev:production": "vite --mode production" // MODE === "production"
+  }
+}
+```
+
+### 모노레포, NX
+
+> 위 케이스를 이해했다면 내가 직접적으로 헷갈렸던 구간을 정리해보자.
+
+언급했듯이, Vite만 사용할 때는 크게 두 가지를 구분하면 됐다.
+
+- `NODE_ENV`: 개발 모드인지, 프로덕션 모드인지
+- `MODE`: 어떤 `.env.[mode]` 파일을 읽을지
+
+하지만 NX를 사용하면 `build`, `serve` 같은 target별로 configuration이 함께 등장한다.
+
+```jsonc
+{
+  //...
+  "targets": {
+    "start": {
+      "defaultConfiguration": "development",
+      "configurations": {
+        "development": {
+          "commands": [
+            //...
+          ],
+        },
+        "staging": {
+          "commands": [
+            //...
+          ],
+        },
+        "production": {
+          "commands": [
+            //...
+          ],
+        },
+      },
+    },
+    "build": {
+      "defaultConfiguration": "production",
+      "configurations": {
+        "development": {
+          "mode": "development",
+        },
+        "staging": {
+          "mode": "staging",
+        },
+        "production": {
+          "mode": "production",
+        },
+      },
+    },
+    "serve": {
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "<project>:build",
+      },
+      "configurations": {
+        "development": {}, // nx run <project>:serve:development
+        "staging": {}, //  nx run <project>:serve:staging
+        "production": {}, // nx run <project>:serve:production
+      },
+    },
+  },
+}
+```
+
+위 project.json을 기준으로 `nx run <project>:serve:development`를 실행했다면, Vite의 MODE는 development이며 .env.development가 로드된다.
+
+NODE_ENV는 NX의 configuration이 직접 결정하는 값은 아니다.
+
+<SideNote>
+  [Vite NODE_ENV and
+  Modes](https://vite.dev/guide/env-and-mode#node-env-and-modes)
+</SideNote>
+
+Vite 기준에서는 dev server를 실행하면 `NODE_ENV=development`, build를 실행하면 `NODE_ENV=production`으로 동작한다.
+
+즉, `nx run <project>:serve:development`를 실행했다면 `NODE_ENV=development`일 것이라고 생각했다. 하지만 실제로는 `NODE_ENV=production`이었다.
+
+이유는 `@nx/vite:dev-server`가 `serve` target만 보는 것이 아니라, `options.buildTarget`으로 지정된 `build` target의 설정도 참조하기 때문이다.
+
+```jsonc
+"serve": {
+  "options": {
+    "buildTarget": "<project>:build"
+  }
+}
+```
+
+결과적으로 serve:development를 실행했지만, buildTarget 쪽에서는 build:production 설정이 참조되면서 **NODE_ENV=production으로 잡혔다.**
+
+그래서 Tanstack Query DevTools가 노출되지 않았다.
+
+물론 `build 내 defaultConfiguration`을 `production`에서 `development`로 바꾸면 DevTools는 다시 노출된다.
+
+하지만 이 방식은 `nx build <project>`의 기본 동작까지 development build로 바꿀 수 있기 때문에 좋은 해결책은 아니다.
+
+더 안전한 방법은 `serve` target에서 사용할 `buildTarget`을 configuration까지 명시하는 것이다.
+
+```jsonc
+"serve": {
+  // production이더라도, buildTarget이 development로 잡히면 buildTarget 우선
+  "defaultConfiguration": "development",
+  "options": {
+    "buildTarget": "<project>:build:development"
+  },
+  "configurations": {
+    "development": {
+      "buildTarget": "<project>:build:development"
+    },
+    "staging": {
+      "buildTarget": "<project>:build:staging"
+    },
+    "production": {
+      "buildTarget": "<project>:build:production"
+    }
+  }
+}
+```
+
+`NODE_ENV`는 Nx configuration 이름이 직접 결정하지 않는다.  
+하지만 `@nx/vite:dev-server`는 `buildTarget`을 참조하므로, `buildTarget`이 어떤 build configuration을 바라보는지에 따라 `NODE_ENV`가 간접적으로 달라질 수 있다.
+
+### 참고자료
+
+[Env Variables and Modes](https://vite.dev/guide/env-and-mode)  
+[For React applications using Vite](https://nx.dev/docs/technologies/react/guides/use-environment-variables-in-react#for-react-applications-using-vite)
