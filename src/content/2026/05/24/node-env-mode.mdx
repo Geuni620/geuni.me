@@ -1,6 +1,6 @@
 ---
-date: "2026-05-24"
-title: "NODE_ENV와 MODE"
+date: "2026-05-30"
+title: "Vite의 NODE_ENV와 MODE, NX의 Configuration"
 category: ["개발"]
 summary: "너무 헷갈려요."
 short: true
@@ -186,8 +186,9 @@ Vite 기준에서는 dev server를 실행하면 `NODE_ENV=development`, build를
 
 더 안전한 방법은 `serve` target에서 사용할 `buildTarget`을 configuration까지 명시하는 것이다.
 
-```
+```jsonc
 "serve": {
+  // production이더라도, buildTarget이 development로 잡히면 buildTarget 우선
   "defaultConfiguration": "development",
   "options": {
     "buildTarget": "<project>:build:development"
