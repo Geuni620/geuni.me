@@ -143,6 +143,9 @@ dev를 실행했을 땐 development로 NODE_ENV가 결정된다.
     },
     "serve": {
       "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "<project>:build",
+      },
       "configurations": {
         "development": {}, // nx run <project>:serve:development
         "staging": {}, //  nx run <project>:serve:staging
@@ -156,8 +159,64 @@ dev를 실행했을 땐 development로 NODE_ENV가 결정된다.
 위 project.json을 기준으로 `nx run <project>:serve:development`를 실행했다면,  
 NX의 configuration은 development이며, Vite의 MODE도 development → .env.development가 로드된다.
 
-NX에서 development로 실행했을 경우에는 NODE_ENV도 development이며, produci
+NODE_ENV는 NX의 configuration이 직접 결정하는 값은 아니다.
+
+Vite 기준에서는 dev server를 실행하면 `NODE_ENV=development`, build를 실행하면 `NODE_ENV=production`으로 동작한다.  
+[Vite NODE_ENV and Modes](https://vite.dev/guide/env-and-mode#node-env-and-modes)
+
+즉, `nx run <project>:serve:development`를 실행했다면 당연히 `NODE_ENV=development`일 것이라고 생각했다.  
+하지만 실제로는 `NODE_ENV=production`이었다.
+
+이유는 `@nx/vite:dev-server`가 `serve` target만 보는 것이 아니라, `options.buildTarget`으로 지정된 `build` target의 설정도 참조하기 때문이다.
+
+```jsonc
+"serve": {
+  "options": {
+    "buildTarget": "<project>:build"
+  }
+}
+```
+
+결과적으로 serve:development를 실행했지만, buildTarget 쪽에서는 build:production 설정이 참조되면서 **NODE_ENV=production으로 잡혔다.**
+
+그래서 Tanstack Query DevTools가 노출되지 않았다.
+
+물론 `build 내 defaultConfiguration`을 `production`에서 `development`로 바꾸면 DevTools는 다시 노출된다.  
+하지만 이 방식은 `nx build <project>`의 기본 동작까지 development build로 바꿀 수 있기 때문에 좋은 해결책은 아니다.
+
+더 안전한 방법은 `serve` target에서 사용할 `buildTarget`을 configuration까지 명시하는 것이다.
+
+```
+"serve": {
+  "defaultConfiguration": "development",
+  "options": {
+    "buildTarget": "<project>:build:development"
+  },
+  "configurations": {
+    "development": {
+      "buildTarget": "<project>:build:development"
+    },
+    "staging": {
+      "buildTarget": "<project>:build:staging"
+    },
+    "production": {
+      "buildTarget": "<project>:build:production"
+    }
+  }
+}
+```
+
+`NODE_ENV`는 Nx configuration 이름이 직접 결정하지 않는다.  
+하지만 `@nx/vite:dev-server`는 `buildTarget`을 참조하므로, `buildTarget`이 어떤 build configuration을 바라보는지에 따라 `NODE_ENV`가 간접적으로 달라질 수 있다.
 
 ### 참고자료
 
 [https://vite.dev/guide/env-and-mode](https://vite.dev/guide/env-and-mode)
+
+```
+
+```
+
+```
+
+```
