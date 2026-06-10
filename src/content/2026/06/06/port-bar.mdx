@@ -1,0 +1,39 @@
+---
+date: "2026-06-06"
+title: ""
+category: ["개발"]
+summary: ""
+short: false
+---
+
+import { SideNote } from "@/components/layout";
+
+요즘은 터미널에서 개발을 하기보단, codex-app, conductor를 애용하고 있다.  
+특히 사내에서는 claude-code를 지원해주기 때문에, conductor를 주로 사용한다.
+
+### Worktree
+
+의외로, 생각보다 많은 사람들이 [conductor](https://www.conductor.build/)를 사용하지 않는 것 같다.  
+최근 단톡방에서 괜찮은 에디터, 또는 터미널을 추천해달라고 했을 때 Conductor라는 단어가 당연히 나올 것이라 생각했지만 주제가 바뀌기 전까지 해당 단어는 노출되지 않았다.
+
+<SideNote>
+  이 글을 쓰고 난 뒤, 내가 Conductor를 어떻게 사용하고 있는지 글을 써봐도 좋을
+  것 같다.
+</SideNote>
+
+Conductor는 기본적으로 작업을 할 때 워크트리(worktree)를 생성하고, 세션을 열어서 작업을 시작한다.  
+즉, 하나의 Target 브랜치를 잡고, 그 브랜치에서부터 트리를 Worktree를 생성하고 Target Branch로 머지시키면서 생산성을 높인다.
+
+나는 주로 Jira SubTask 기준으로 워크트리를 생성하는 편이다.  
+그래서 한번에 작업할 때 주로 워크트리 2~4개 정도 생성해서 작업하는 편이다.
+
+그러다보니 맞닥드리는 문제가 있다. 바로, local port 관리가 용이하지 않다.  
+예를들어, 하나의 워크트리에서 User, Admin만 열어도 8080, 4200으로 포트를 점유하게 된다.
+
+2~3개정도만 워크트리를 넘나들며 작업하다 보면, 8081, 8082, 8083으로 포트가 열리게 되고, 여기에 Storybook까지 더하면 관리가 안된다.  
+심지어 요즘은 agent-browser도 자주 사용하는 편인데, 세션에서 AI가 headless로 브라우저를 열게 되면 또 추가적인 port를 점유한다.
+
+정신차려보면 여기저기 무분별하게 port를 열어놓았고, 맥의 Pen이 CPU 열을 낮추기 위해 돌기 시작한다.  
+결국 iterms로 claude-code나 codex를 열고 다음과 같이 입력한다.
+
+'현재 8080부터 8090까지, 4200~4210까지 열려있는 포트 모두 kill시켜줘..'
