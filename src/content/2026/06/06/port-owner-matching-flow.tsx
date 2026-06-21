@@ -87,28 +87,6 @@ const PORT_OWNER_STEPS = [
       },
     ],
   },
-  {
-    id: "row",
-    label: "5. Row",
-    title: "매칭되면 Port Bar의 runtime row에 연결한다.",
-    description:
-      "Port Bar는 포트를 새 목록에만 추가하지 않고, worktree와 target으로 만들어둔 row에 PID와 Port를 붙인다.",
-    command: "RuntimeTargetRow.makeRows(...)",
-    rows: [
-      {
-        label: "worktree",
-        value: "320d/<project>",
-      },
-      {
-        label: "target",
-        value: "User / Admin / Storybook",
-      },
-      {
-        label: "state",
-        value: "stopped -> running 또는 external",
-      },
-    ],
-  },
 ] as const;
 
 type PortOwnerStepID = (typeof PORT_OWNER_STEPS)[number]["id"];
@@ -116,8 +94,7 @@ type PortOwnerStepID = (typeof PORT_OWNER_STEPS)[number]["id"];
 export const PortOwnerMatchingFlow = () => {
   const [stepID, setStepID] = useState<PortOwnerStepID>("ports");
   const selectedStep =
-    PORT_OWNER_STEPS.find((step) => step.id === stepID) ??
-    PORT_OWNER_STEPS[0];
+    PORT_OWNER_STEPS.find((step) => step.id === stepID) ?? PORT_OWNER_STEPS[0];
 
   return (
     <div className="my-8">
