@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { CircleStop, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,96 +22,54 @@ const formatTimer = (milliseconds: number) => {
   )}`;
 };
 
-interface TimerSnapshot {
-  isRunning: boolean;
-  remainingMilliseconds: number;
-}
+const useLoopingTimer = (duration: number) => {
+  const [isRunning, setIsRunning] = useState(false);
+  const [remainingMilliseconds, setRemainingMilliseconds] = useState(duration);
 
-const createTimerStore = (duration: number) => {
-  const initialSnapshot = {
-    isRunning: false,
-    remainingMilliseconds: duration,
-  };
+  useEffect(() => {
+    if (!isRunning) return;
 
-  let snapshot: TimerSnapshot = initialSnapshot;
-  let startedAt = 0;
-  let frame: number | null = null;
-  const listeners = new Set<() => void>();
+    let startedAt = performance.now();
+    let frame: number;
 
-  const emit = () => {
-    listeners.forEach((listener) => listener());
-  };
+    const tick = () => {
+      const elapsed = performance.now() - startedAt;
+      const nextRemaining = Math.max(0, duration - Math.floor(elapsed));
 
-  const setSnapshot = (nextSnapshot: TimerSnapshot) => {
-    snapshot = nextSnapshot;
-    emit();
-  };
+      if (nextRemaining <= 0) {
+        startedAt = performance.now();
+        setRemainingMilliseconds(duration);
+      } else {
+        setRemainingMilliseconds(nextRemaining);
+      }
 
-  const clearFrame = () => {
-    if (frame !== null) {
-      window.cancelAnimationFrame(frame);
-      frame = null;
-    }
-  };
-
-  const tick = () => {
-    const elapsed = performance.now() - startedAt;
-    const nextRemaining = Math.max(0, duration - Math.floor(elapsed));
-
-    if (nextRemaining <= 0) {
-      startedAt = performance.now();
-      setSnapshot({
-        isRunning: true,
-        remainingMilliseconds: duration,
-      });
-    } else {
-      setSnapshot({
-        isRunning: true,
-        remainingMilliseconds: nextRemaining,
-      });
-    }
+      frame = window.requestAnimationFrame(tick);
+    };
 
     frame = window.requestAnimationFrame(tick);
-  };
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [duration, isRunning]);
 
   const start = () => {
-    clearFrame();
-    startedAt = performance.now();
-    setSnapshot({
-      isRunning: true,
-      remainingMilliseconds: duration,
-    });
-    frame = window.requestAnimationFrame(tick);
+    setRemainingMilliseconds(duration);
+    setIsRunning(true);
   };
 
   const stop = () => {
-    clearFrame();
-    setSnapshot(initialSnapshot);
-  };
-
-  const subscribe = (listener: () => void) => {
-    listeners.add(listener);
-
-    return () => {
-      listeners.delete(listener);
-
-      if (listeners.size === 0) {
-        clearFrame();
-        snapshot = initialSnapshot;
-      }
-    };
+    setIsRunning(false);
+    setRemainingMilliseconds(duration);
   };
 
   return {
-    subscribe,
-    getSnapshot: () => snapshot,
-    getServerSnapshot: () => initialSnapshot,
+    isRunning,
+    remainingMilliseconds,
     start,
     stop,
   };
 };
-
-const timerStore = createTimerStore(TIMER_DURATION);
 
 const Timer = ({
   milliseconds,
@@ -152,11 +110,8 @@ const TimerBox = ({ title, tabular, milliseconds }: TimerBoxProps) => {
 };
 
 export const Preview = () => {
-  const { isRunning, remainingMilliseconds } = useSyncExternalStore(
-    timerStore.subscribe,
-    timerStore.getSnapshot,
-    timerStore.getServerSnapshot,
-  );
+  const { isRunning, remainingMilliseconds, start, stop } =
+    useLoopingTimer(TIMER_DURATION);
 
   const TimerControlIcon = isRunning ? CircleStop : Play;
 
@@ -182,11 +137,11 @@ export const Preview = () => {
             aria-label={isRunning ? "Stop timer" : "Play timer"}
             onClick={() => {
               if (isRunning) {
-                timerStore.stop();
+                stop();
                 return;
               }
 
-              timerStore.start();
+              start();
             }}
           >
             <TimerControlIcon className="h-4 w-4" aria-hidden="true" />
