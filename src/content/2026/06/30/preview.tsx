@@ -8,6 +8,8 @@ const SECOND_IN_MS = 1000;
 const MINUTE_IN_MS = 60 * SECOND_IN_MS;
 const TIMER_DURATION = 60 * SECOND_IN_MS;
 
+// 59300 → 59.30
+// seconds: 59, millis: 300, centis: 30
 const formatTimer = (milliseconds: number) => {
   const safeMilliseconds = Math.max(0, milliseconds);
   const seconds = Math.floor((safeMilliseconds % MINUTE_IN_MS) / SECOND_IN_MS);
