@@ -1,0 +1,121 @@
+---
+date: "2026-07-23"
+title: "dark mode"
+category: ["개발"]
+summary: ""
+short: true
+---
+
+import { SandpackWrapper } from "@/components/sandpack";
+import { DARK_MODE_FILES } from "./files";
+
+나는 클라이언트 상태를 깊게 다뤄본 경험이 부족하다.  
+그래서 최근에 [excalidraw](https://github.com/excalidraw/excalidraw)를 까보는 중이다.  
+기록으로 남겨놓고 싶은게 있어서 적어본다.
+
+<SandpackWrapper
+  files={DARK_MODE_FILES}
+  theme="auto"
+  options={{
+    visibleFiles: ["/App.tsx", "/App.css"],
+    editorHeight: 620,
+    editorWidthPercentage: 0,
+  }}
+/>
+
+---
+
+# appTheme, editorTheme
+
+excalidraw는 다크모드 구현을 위해 상태를 2개로 관리한다.
+
+```tsx
+const [appTheme, setAppTheme] = useState<AppTheme>("light");
+
+// Light 버튼  → appTheme = "light"
+// Dark 버튼   → appTheme = "dark"
+// System 버튼 → appTheme = "system"
+```
+
+`appTheme`는 사용자가 UI에 선택한 값을 관리한다.
+
+```tsx
+const [editorTheme, setEditorTheme] = useState<Theme>("light");
+
+// appTheme = light  → editorTheme = light
+// appTheme = dark   → editorTheme = dark
+// appTheme = system → OS 설정에 따라 light 또는 dark
+```
+
+`editorTheme`는 실제 화면에 적용할 값이다.
+
+<br />
+
+# 동작 방식
+
+```tsx
+const [appTheme, setAppTheme] = useState<AppTheme>("light");
+const [editorTheme, setEditorTheme] = useState<Theme>("light");
+
+useEffect(() => {
+  if (appTheme !== "system") {
+    setEditorTheme(appTheme);
+    return;
+  }
+
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const updateEditorTheme = (matches: boolean) => {
+    setEditorTheme(matches ? "dark" : "light");
+  };
+
+  const handleChange = (event: MediaQueryListEvent) => {
+    updateEditorTheme(event.matches);
+  };
+
+  updateEditorTheme(mediaQuery.matches);
+  mediaQuery.addEventListener("change", handleChange);
+
+  return () => {
+    mediaQuery.removeEventListener("change", handleChange);
+  };
+}, [appTheme]);
+```
+
+## Light/Dark 선택 시
+
+만약 유저가 dark를 선택했다면 다음과 같이 동작한다.
+
+```
+사용자가 Dark 클릭
+→ setAppTheme("dark")
+→ appTheme 변경
+→ 리렌더링
+→ useEffect 실행[dependency appTheme]
+→ setEditorTheme("dark")
+→ editorTheme 변경
+→ 다시 리렌더링
+```
+
+그리고 editorTheme가 실제 화면에 반영되는 것이다.
+
+## System 상태에서 OS 테마 변경 시
+
+만약 유저가 system을 선택했다면 다음과 같이 동작한다.
+
+```
+사용자가 System 클릭
+→ useEffect 재실행 안 함
+→ mediaQuery 변경(onChange)
+→ 브라우저가 handleChange 호출
+→ updateEditorTheme 호출
+→ setEditorTheme 호출
+→ editorTheme 변경
+→ 리렌더링
+```
+
+useEffect는 재실행 되지 않지만 useEffect 내 존재하는 mediaQuery가 변경되고,
+`mediaQuery.addEventListener("change", handleChange)`에 의해 editorTheme의 상태가 변경된다.
+
+appTheme은 여전히 `system` 상태를 유지한다.
+
+<br />
