@@ -1,6 +1,6 @@
 ---
 date: "2026-07-23"
-title: "dark mode"
+title: "Excalidraw의 다크모드는 왜 상태를 두 개 사용할까"
 category: ["개발"]
 summary: ""
 short: true
@@ -11,7 +11,7 @@ import { DARK_MODE_FILES } from "./files";
 
 나는 클라이언트 상태를 깊게 다뤄본 경험이 부족하다.  
 그래서 최근에 [excalidraw](https://github.com/excalidraw/excalidraw)를 까보는 중이다.  
-기록으로 남겨놓고 싶은게 있어서 적어본다.
+기록으로 남겨놓고 싶은 [코드](https://github.com/excalidraw/excalidraw/blob/master/excalidraw-app/useHandleAppTheme.ts) 있어서 적어본다.
 
 <SandpackWrapper
   files={DARK_MODE_FILES}
@@ -117,5 +117,3 @@ useEffect는 재실행 되지 않지만 useEffect 내 존재하는 mediaQuery가
 `mediaQuery.addEventListener("change", handleChange)`에 의해 editorTheme의 상태가 변경된다.
 
 appTheme은 여전히 `system` 상태를 유지한다.
-
-<br />
