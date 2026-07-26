@@ -10,7 +10,7 @@ import { SandpackWrapper } from "@/components/sandpack";
 import { DARK_MODE_FILES } from "./files";
 
 나는 클라이언트 상태를 깊게 다뤄본 경험이 부족하다.  
-그래서 최근에 [excalidraw](https://github.com/excalidraw/excalidraw)를 까보는 중이다.  
+그래서 최근에 [Excalidraw](https://github.com/excalidraw/excalidraw)를 까보는 중이다.  
 기록으로 남겨놓고 싶은 [코드](https://github.com/excalidraw/excalidraw/blob/master/excalidraw-app/useHandleAppTheme.ts) 있어서 적어본다.
 
 <SandpackWrapper
@@ -27,7 +27,7 @@ import { DARK_MODE_FILES } from "./files";
 
 # appTheme, editorTheme
 
-excalidraw는 다크모드 구현을 위해 상태를 2개로 관리한다.
+Excalidraw는 다크모드 구현을 위해 상태를 2개로 관리한다.
 
 ```tsx
 const [appTheme, setAppTheme] = useState<AppTheme>("light");
@@ -117,3 +117,69 @@ useEffect는 재실행 되지 않지만 useEffect 내 존재하는 mediaQuery가
 `mediaQuery.addEventListener("change", handleChange)`에 의해 editorTheme의 상태가 변경된다.
 
 appTheme은 여전히 `system` 상태를 유지한다.
+
+<br />
+
+# useSyncExternalStore로 변경해보기
+
+```tsx
+function subscribeToSystemTheme(callback: () => void) {
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+  mediaQuery.addEventListener("change", callback);
+
+  return () => {
+    mediaQuery.removeEventListener("change", callback);
+  };
+}
+
+function getSystemTheme(): Theme {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
+
+export default function App() {
+  const [appTheme, setAppTheme] = useState<AppTheme>("light");
+
+  const systemTheme = useSyncExternalStore(
+    subscribeToSystemTheme,
+    getSystemTheme,
+  );
+
+  const editorTheme = appTheme === "system" ? systemTheme : appTheme;
+
+  return (
+    //...
+  );
+}
+```
+
+## System 상태에서 OS 테마 변경 시
+
+```
+OS 테마 변경
+→ 브라우저가 `change` 이벤트 발생
+→ `callback function` 호출
+→ React가 `getSystemTheme` 다시 호출
+→ `systemTheme` 변경 (dark or light)
+→ `editorTheme` 다시 계산
+→ 리렌더링
+```
+
+<br />
+
+# 정리
+
+처음에 appTheme와 editorTheme를 각각 상태로 관리하는 방식이 어색하게 느껴졌다.  
+Excalidraw에서 관리하는 방식을 `useSyncExternalStore`로 관리할 수 있을 것 같았고, 다르게는 굳이 `useSyncExternalStore`까지 쓸 필요도 없이 state 1개와 CSS만으로 처리할 수 있을 것 같았다.
+
+하지만, Excalidraw는 일반적인 HTML UI만 다루지 않는다.  
+캔버스 렌더링, 이미지와 이모지, 내보내기처럼 JavaScript가 실제 "light" 또는 "dark" 값을 알아야 하는 영역이 있다. CSS는 화면 스타일을 바꿀 수 있지만, 그 결과를 캔버스와 내보내기 로직에 전달해 주지는 않는다.
+
+이 관점에서 appTheme와 editorTheme는 역할이 다르다.
+
+appTheme는 사용자가 선택한 값이다.
+editorTheme는 시스템 설정까지 반영해 실제 적용할 값이다.
+
+그래서 Excalidraw의
