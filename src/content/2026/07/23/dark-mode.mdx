@@ -217,7 +217,7 @@ excalidraw의 dark-mode에 대한 issue를 거슬러 올라가면 2020년에 초
 
 초기는 단촐하다. CSS에 변수를 지정하고 light와 dark 속성에 따라 단순 스타일을 전환시켜서 구현했다. system도 고려되지 않았다.
 
-### 2. 시스템 테마
+### 2. 시스템 테마 논의
 
 ```css
 @media (prefers-color-scheme: dark) {
@@ -230,13 +230,13 @@ excalidraw의 dark-mode에 대한 issue를 거슬러 올라가면 2020년에 초
 하지만 excalidraw 팀은 시스템 OS에 따른 테마 설정을 바로 반영하지 않는다.
 그 이유는 macOS를 dark로 사용하는 사람도 UI는 dark이지만 Excalidraw 같은 도화지는 흰 색상이길 원할 수 있다는 점 때문이다.
 
-### 3. 내보내기
+### 3. 내보내기 테마
 
 [#2026](https://github.com/excalidraw/excalidraw/issues/2026)
 
 이번엔 내보내기 기능에 다크모드를 지원해야할지 말아야할지 고민에 대한 이슈이다.
 
-### 4. localStorage
+### 4. 테마 저장과 초기 깜빡임
 
 localStorage로 dark-mode를 저장해뒀다가 사용하는데,
 html로 로드될 때 default light mode에서 js가 로드되면서 localStorage를 읽고 다크모드라면 초기 slash 에서 흰화면이 잠깐 보였다가 다크모드로 전환된다.  
@@ -244,4 +244,7 @@ html로 로드될 때 default light mode에서 js가 로드되면서 localStorag
 
 물론 localStorage와 상태 동기화로직도 포함되어있는 PR이 존재한다. [#5660](https://github.com/excalidraw/excalidraw/pull/5660/changes#diff-7d537bef2a9bbed4a1fbc825d63163ce532bb20b8ea8dfc0ae1d1b296dcf2aecR517-R528)
 
-### 5. useLayoutEffect
+### 5. System 모드와 두 상태
+
+드디어 우리가 살펴봤던 appTheme과 editorTheme가 나온다.  
+useLayoutEfffect와 useEffect를 각각 사용했다.
