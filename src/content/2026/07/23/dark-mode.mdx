@@ -248,3 +248,9 @@ html로 로드될 때 default light mode에서 js가 로드되면서 localStorag
 
 드디어 우리가 살펴봤던 appTheme과 editorTheme가 나온다.  
 useLayoutEfffect와 useEffect를 각각 사용했다.
+
+여기서 useLayoutEffect까지 사용한 이유는 동기화 때문이다.
+유저가 dark로 선택했고, 이를 저장했지만, appTheme의 default는 light이다.
+
+만약 해당 유저가 이 페이지에서 새로고침을 한다면 잠깐의 찰나에 light → dark로 appTheme과 editorTheme의 동기화가 발생하는데,
+이는 사용자에게 안 좋은 UX를 심어줄 수 있는 것이다.
