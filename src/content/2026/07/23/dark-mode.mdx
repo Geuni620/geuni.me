@@ -3,7 +3,6 @@ date: "2026-07-23"
 title: "Excalidraw의 다크모드는 왜 상태를 두 개 사용할까"
 category: ["개발"]
 summary: ""
-short: true
 ---
 
 import { SandpackWrapper } from "@/components/sandpack";
@@ -49,7 +48,7 @@ const [editorTheme, setEditorTheme] = useState<Theme>("light");
 
 `editorTheme`는 실제 화면에 적용할 값이다.
 
-<br />
+---
 
 # 동작 방식
 
@@ -96,15 +95,15 @@ useEffect(() => {
 → 다시 리렌더링
 ```
 
-그리고 editorTheme가 실제 화면에 반영되는 것이다.
+editorTheme가 실제 화면에 반영되는 것이다.
 
 ## System 상태에서 OS 테마 변경 시
 
-이미 `appTheme`이 `"system"`인 상태에서 OS 테마가 변경되면 다음과 같이 동작한다.
+이미 `appTheme`이 `system`인 상태에서 OS 테마가 변경되면 다음과 같이 동작한다.
 
-```text
+```tex
 OS 테마 변경
-→ useEffect 재실행 안 함
+→ useEffect 재실행 안됨(=이미 appTheme은 system)
 → mediaQuery 변경(onChange)
 → 브라우저가 handleChange 호출
 → updateEditorTheme 호출
@@ -113,12 +112,12 @@ OS 테마 변경
 → 리렌더링
 ```
 
-useEffect는 재실행 되지 않지만 useEffect 내 존재하는 mediaQuery가 변경되고,
-`mediaQuery.addEventListener("change", handleChange)`에 의해 editorTheme의 상태가 변경된다.
+useEffect는 재실행 되지 않지만 OS테마가 변경되면 MediaQueryList의 매칭 결과가 달라지면서 change 이벤트가 발생한다.
+등록된 handleChange가 이를 받아 editorTheme을 변경한다.
 
 appTheme은 여전히 `system` 상태를 유지한다.
 
-<br />
+---
 
 # useSyncExternalStore로 변경해보기
 
@@ -159,21 +158,39 @@ export default function App() {
 
 ```
 OS 테마 변경
-→ 브라우저가 `change` 이벤트 발생
-→ `callback function` 호출
-→ React가 `getSystemTheme` 다시 호출
-→ `systemTheme` 변경 (dark or light)
-→ `editorTheme` 다시 계산
+→ mediaQuery 변경(onChange)
+→ callback function 호출
+→ React가 getSystemTheme 호출
+→ systemTheme 변경 (dark or light)
+→ editorTheme이 변경
 → 리렌더링
 ```
 
+React 상태를 appTheme 하나로 유지한다. 사용자가 system 테마를 선택한 경우에는 OS 테마를 별도로 React 상태로 직접 관리하지 않고, useSyncExternalStore를 사용해 외부 시스템 상태를 구독한다.
+
+OS 테마가 변경되면 [MediaQueryList](https://developer.mozilla.org/en-US/docs/Web/API/MediaQueryList)의 change 이벤트가 발생하고, 등록된 callback이 호출된다. 참고로 이 callback은 getSystemTheme이 아니라, React에게 외부 값이 변경되었다는 사실을 알리는 함수다.
+
+React는 callback 호출을 통해 변경 사실을 알게 되고, getSystemTheme을 다시 호출해 현재 OS 테마를 읽는다.  
+getSystemTheme의 결과가 기존 값과 다르면 systemTheme이 갱신되고 리렌더링이 발생한다.
+
+이때 렌더링 과정에서 editorTheme이 다시 계산되므로 에디터의 dark/light 모드도 변경된다.
+
+참고로 이는 [#10637](https://github.com/excalidraw/excalidraw/pull/10637)에 PR이 올라와있는 상태이다.
+
+---
+
 # 상태 + CSS로 변경해보기
 
-처음 dark-mode 구현을 보고 굳이 상태를 2개 관리할 필요가 있을까 싶었다.  
-1개의 상태에 변수 1개로 처리할 수 있을 것 같았다.
+다르게 한번 고민해보고 싶었다.
+처음 excalidraw의 dark-mode 구현된 소스코드를 보고 가장 먼저 떠올랐던 생각은 두 개의 상태를 동기화하는 게 아니라, `1개의 상태와 1개의 변수로 관리할 수 있지 않을까?` 이었다. useSyncExternalStore와 같은 hooks을 사용하지 않은 채 말이다.
 
-하지만 appTheme이 System일 경우, OS 요소를 읽는 것까진 가능하지만 화면자체를 리렌더링 시킬 순 없었다.  
-고민해보던 중 CSS를 사용하면 어느정도 해결이 가능하다.
+컴포넌트를 적절히 나눠서 draft state를 두면 가능하지 않을까 싶었는데 불가능했다.  
+문제는 외부의 영역(systemOS)의 변경 시, 이를 감지하고 리렌더링 시킬 방법이 없었다.
+
+방법을 고민하다가 CSS를 이용해서 변경을 감지하면 될 것 같았다.  
+React가 OS 테마 변경을 직접 감지하는게 아니라, 브라우저의 CSS 엔진이 `prefers-color-scheme` 미디어 쿼리를 통해 OS 테마 변경에 반응하도록 만들 수 있다.
+
+이때 React의 상태는 사용자가 선택한 테마만 관리한다.
 
 ```tsx
 function App() {
@@ -192,6 +209,8 @@ function App() {
 }
 ```
 
+data-theme은 useState와 같은 별도의 상태 저장소는 아니다. React 상태인 appTheme의 값을 DOM에 표시하는 [데이터 속성](https://developer.mozilla.org/ko/docs/Web/HTML/How_to/Use_data_attributes)이다.
+
 ```css
 .theme-demo {
   /* 기본값: light */
@@ -207,6 +226,33 @@ function App() {
   }
 }
 ```
+
+CSS에서는 data-theme 속성이 있는 경우 사용자가 선택한 테마를 적용하고, 속성이 없는 경우 OS 테마를 따르도록 한다.
+
+```
+사용자가 light 또는 dark 선택
+→ appTheme 변경
+→ React 리렌더링
+→ data-theme 속성 변경
+→ 명시적인 CSS 규칙 적용
+
+사용자가 system 선택
+→ appTheme 변경
+→ React 리렌더링
+→ data-theme 속성 제거
+→ CSS가 OS 테마를 따름
+
+system 상태에서 OS 테마 변경
+→ React 리렌더링 없음
+→ prefers-color-scheme 조건 변경
+→ 브라우저가 CSS 스타일 재계산
+→ 화면 스타일 변경
+```
+
+하지만 이 방법만으로 excalidraw의 dark-mode 영역을 모두 커버할 순 없다.  
+내가 생각한 것보다, 훨씬 많은 고민들이 excalidraw app의 dark-mode 구현체에 묻어있었다.
+
+---
 
 # 그 간의 고민을 읽어보기
 
