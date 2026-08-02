@@ -184,8 +184,23 @@ getSystemTheme의 결과가 기존 값과 다르면 systemTheme이 갱신되고 
 다르게 한번 고민해보고 싶었다.
 처음 excalidraw의 dark-mode 구현된 소스코드를 보고 가장 먼저 떠올랐던 생각은 두 개의 상태를 동기화하는 게 아니라, `1개의 상태와 1개의 변수로 관리할 수 있지 않을까?` 이었다. useSyncExternalStore와 같은 hooks을 사용하지 않은 채 말이다.
 
-컴포넌트를 적절히 나눠서 draft state를 두면 가능하지 않을까 싶었는데 불가능했다.  
-문제는 외부의 영역(systemOS)의 변경 시, 이를 감지하고 리렌더링 시킬 방법이 없었다.
+컴포넌트를 적절히 나눠서 draft state를 두면 가능하지 않을까 싶었는데 불가능했다.
+
+```tsx
+function ThemeEditor({ initialTheme = "light" }: { initialTheme: AppTheme }) {
+  const [draftTheme, setDraftTheme] = useState<AppTheme>();
+
+  const appTheme = draftTheme ?? initialTheme;
+  const editorTheme = appTheme === "system" ? getSystemTheme() : appTheme;
+
+  return (
+    //...
+  );
+}
+```
+
+사용자가 light, dark, system을 선택할 때는 모두 대응가능했다.  
+하지만 사용자가 system을 선택한 상태에서 OS 테마가 변경되면 이를 대응할 방법이 없다.
 
 방법을 고민하다가 CSS를 이용해서 변경을 감지하면 될 것 같았다.  
 React가 OS 테마 변경을 직접 감지하는게 아니라, 브라우저의 CSS 엔진이 `prefers-color-scheme` 미디어 쿼리를 통해 OS 테마 변경에 반응하도록 만들 수 있다.
