@@ -273,12 +273,16 @@ system 상태에서 OS 테마 변경
 
 ### 1. 최초의 dark-mode
 
-excalidraw의 dark-mode에 대한 issue를 거슬러 올라가면 2020년에 초기안이 개발된 것으로 보인다. [#1148](https://github.com/excalidraw/excalidraw/issues/1148)  
+[#1148](https://github.com/excalidraw/excalidraw/issues/1148) excalidraw의 dark-mode에 대한 issue를 거슬러 올라가면 2020년에 초기안이 개발된 것으로 보인다.
+
 [#2006](https://github.com/excalidraw/excalidraw/pull/2006) PR을 살펴보면, 초기 Dark Mode를 어떻게 구현했는지 확인할 수 있다.
 
 초기는 단촐하다. CSS에 변수를 지정하고 light와 dark 속성에 따라 단순 스타일을 전환시켜서 구현했다. system도 고려되지 않았다.
 
 ### 2. 시스템 테마 논의
+
+[#2025](https://github.com/excalidraw/excalidraw/issues/2025)
+시스템 테마에 대한 논의가 시작되었다.
 
 ```css
 @media (prefers-color-scheme: dark) {
@@ -286,24 +290,36 @@ excalidraw의 dark-mode에 대한 issue를 거슬러 올라가면 2020년에 초
 }
 ```
 
-[#2025](https://github.com/excalidraw/excalidraw/issues/2025)
-
-하지만 excalidraw 팀은 시스템 OS에 따른 테마 설정을 바로 반영하지 않는다.
-그 이유는 macOS를 dark로 사용하는 사람도 UI는 dark이지만 Excalidraw 같은 도화지는 흰 색상이길 원할 수 있다는 점 때문이다.
+하지만 당시 Excalidraw 팀은 시스템 설정을 기본 테마로 바로 반영하지 않았다.
+macOS를 다크모드로 사용하는 사람도 Excalidraw에서는 검은 칠판이 아닌 흰 도화지를 원할 수 있다고 판단했기 때문이다.
 
 ### 3. 내보내기 테마
 
-[#2026](https://github.com/excalidraw/excalidraw/issues/2026)
+[#2026](https://github.com/excalidraw/excalidraw/issues/2026) 이번엔 내보내기 기능에 다크모드를 지원해야할지 말아야할지 고민에 대한 이슈이다.
 
-이번엔 내보내기 기능에 다크모드를 지원해야할지 말아야할지 고민에 대한 이슈이다.
+- 내보내기 미리보기 캔버스에 다크모드 전환을 지원할 것인가?
+- PNG, SVG, 클립보드 등 실제 출력물에도 다크모드를 지원할 것인가?
+
+최종적으로 편집 화면의 테마와 내보내기 테마를 분리하고, 내보내기 창에 별도의 light/dark 토글을 추가하기로 결정했다.
+
+이 토글은 미리보기와 실제 출력물에 함께 적용되며 기본값은 light이다.
+
+[논의방향](https://github.com/excalidraw/excalidraw/issues/2026#issuecomment-780054149), [최종 결정](https://github.com/excalidraw/excalidraw/issues/2026#issuecomment-785123217), [#3046 PR](https://github.com/excalidraw/excalidraw/pull/3046)
 
 ### 4. 테마 저장과 초기 깜빡임
 
-localStorage로 dark-mode를 저장해뒀다가 사용하는데,
-html로 로드될 때 default light mode에서 js가 로드되면서 localStorage를 읽고 다크모드라면 초기 slash 에서 흰화면이 잠깐 보였다가 다크모드로 전환된다.  
-이 때문에 html를 불러올 때부터 scripts를 넣어서 해결했다. [#5701](https://github.com/excalidraw/excalidraw/pull/5701/changes)
+[#5529](https://github.com/excalidraw/excalidraw/issues/5529)
 
-물론 localStorage와 상태 동기화로직도 포함되어있는 PR이 존재한다. [#5660](https://github.com/excalidraw/excalidraw/pull/5660/changes#diff-7d537bef2a9bbed4a1fbc825d63163ce532bb20b8ea8dfc0ae1d1b296dcf2aecR517-R528)
+다크모드 설정은 localStorage에 저장된다. 하지만 저장된 테마가 다크모드여도 애플리케이션이 기본 라이트 테마에 먼저 렌더링 된 다음, 저장된 테마를 복원하면서 다크모드로 전환한다.
+
+이 때문에 초기 로딩 과정에서 흰 화면이 잠깐 나타나는 문제가 있었다.
+
+[#5660](https://github.com/excalidraw/excalidraw/pull/5660) 테마를 별도의 localStorage에 저장하고, 이를 React 상태 및 로딩 화면과 동기화했다. 이를 통해 애플리케이션 최초 렌더링부터 저장된 테마를 사용할 수 있도록 개선한 PR이다.
+
+하지만, React와 애플리케이션 번들이 실행되기 전에 여전히 기본 HTML 배경이 노출될 수 있었다.
+
+후속 PR인 [#5701](https://github.com/excalidraw/excalidraw/pull/5701/changes)에서는 index.html에 인라인 스크립트를 추가했다.
+이 스크립트는 애플리케이션이 실행되기 전에 localStorage 테마를 읽고, 다크모드라면 html에 dark 클래스를 적용한다.
 
 ### 5. System 모드와 두 상태
 
@@ -315,3 +331,5 @@ useLayoutEfffect와 useEffect를 각각 사용했다.
 
 만약 해당 유저가 이 페이지에서 새로고침을 한다면 잠깐의 찰나에 light → dark로 appTheme과 editorTheme의 동기화가 발생하는데,
 이는 사용자에게 안 좋은 UX를 심어줄 수 있는 것이다.
+
+### 6. UI 다크모드와 Canvas 다크모드
