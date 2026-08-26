@@ -20,12 +20,14 @@ interface SandpackWrapperProps {
   files: SandpackProps["files"];
   template?: SandpackProps["template"];
   options?: SandpackProps["options"];
+  theme?: SandpackProps["theme"];
 }
 
 export const SandpackWrapper: React.FC<SandpackWrapperProps> = ({
   files,
   template = "react-ts",
   options: userOptions,
+  theme = githubLight,
 }) => {
   const mergedOptions = useMemo(
     () => ({
@@ -39,7 +41,7 @@ export const SandpackWrapper: React.FC<SandpackWrapperProps> = ({
     <div className="relative lg:-mx-20 xl:-mx-24">
       <Sandpack
         files={files}
-        theme={githubLight}
+        theme={theme}
         template={template}
         options={mergedOptions}
       />
