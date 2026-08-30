@@ -19,7 +19,7 @@ const syncTooltipDriection = ({
 
   tooltipRef.style.setProperty(
     "--dy-sign",
-    String(tooltip.top >= icon.bottom ? -1 : 1)
+    String(tooltip.top >= icon.bottom ? -1 : 1),
   );
 };
 
@@ -64,7 +64,7 @@ export const AnchoredTooltip = () => {
         syncTooltipDriection({
           iconRef: iconRef.current!,
           tooltipRef: tooltipRef.current!,
-        })
+        }),
       );
     };
 
