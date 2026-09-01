@@ -1,134 +1,123 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import "./styles.css";
 
-const ITEMS = [
-  {
-    id: 1,
-    label: "Product",
-    links: ["Intake", "AI and automations", "Changelog", "Mobile"],
-  },
-  {
-    id: 2,
-    label: "Resources",
-    links: ["Docs", "Switch to Linear", "Careers", "Download"],
-  },
-  {
-    id: 3,
-    label: "Company",
-    links: ["About", "Customers"],
-  },
-] as const;
+const CLOSE_DELAY = 180;
 
-const CLOSE_DELAY = 120;
+interface NavigationContextValue {
+  active?: string;
+  open: (value: string) => void;
+  close: () => void;
+  cancelClose: () => void;
+}
 
-type Position = "left" | "active" | "right";
+const NavigationContext = createContext<NavigationContextValue | null>(null);
 
-export const Navigation = () => {
-  const [currentId, setCurrentId] = useState<number>(ITEMS[0].id);
-  const [isOpen, setIsOpen] = useState(false);
-  const [heights, setHeights] = useState<Record<number, number>>({});
+const useNavigation = () => {
+  const context = useContext(NavigationContext);
+  if (!context) {
+    throw new Error("please use Navigation.Root");
+  }
+  return context;
+};
 
-  const closeTimerRef = useRef<number | null>(null);
-  const contentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+const Root = ({ children }: { children: React.ReactNode }) => {
+  const [active, setActive] = useState<string | undefined>(undefined);
+  const closeTimerRef = useRef(0);
 
-  const currentIndex = ITEMS.findIndex((item) => item.id === currentId);
-  const panelHeight = heights[currentId] ?? 0;
-
-  const cancelClose = () => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
-    }
+  const open = (value: string) => {
+    window.clearTimeout(closeTimerRef.current);
+    setActive(value);
   };
 
-  const onOpen = (id: number) => {
-    cancelClose();
-    setCurrentId(id);
-    setIsOpen(true);
-  };
+  const close = () => {
+    window.clearTimeout(closeTimerRef.current);
 
-  const onScheduleClose = () => {
-    cancelClose();
     closeTimerRef.current = window.setTimeout(() => {
-      setIsOpen(false);
+      setActive(undefined);
     }, CLOSE_DELAY);
   };
 
-  useLayoutEffect(() => {
-    const nextHeights: Record<number, number> = {};
+  const cancelClose = () => {
+    window.clearTimeout(closeTimerRef.current);
+  };
 
-    contentRefs.current.forEach((node, id) => {
-      nextHeights[id] = node.getBoundingClientRect().height;
-    });
-
-    setHeights(nextHeights);
+  useEffect(() => {
+    return () => window.clearTimeout(closeTimerRef.current);
   }, []);
 
-  const setContentRef = (id: number) => (node: HTMLDivElement | null) => {
-    if (node) {
-      contentRefs.current.set(id, node);
-      return;
-    }
+  return (
+    <NavigationContext.Provider value={{ active, open, close, cancelClose }}>
+      <nav className="nav" onMouseLeave={close}>
+        {children}
+      </nav>
+    </NavigationContext.Provider>
+  );
+};
 
-    contentRefs.current.delete(id);
-  };
-
-  const positionOf = (index: number): Position => {
-    if (index === currentIndex) {
-      return "active";
-    }
-
-    return index < currentIndex ? "left" : "right";
-  };
+const Item = ({
+  value,
+  children,
+}: {
+  value: string;
+  children: React.ReactNode;
+}) => {
+  const { active, open } = useNavigation();
 
   return (
-    <nav className="nav" onMouseLeave={onScheduleClose}>
-      <ul className="nav-list">
-        {ITEMS.map((item) => (
-          <li key={item.id}>
-            <button
-              type="button"
-              className="nav-item"
-              data-active={isOpen && item.id === currentId}
-              onMouseEnter={() => onOpen(item.id)}
-              onFocus={() => onOpen(item.id)}
-            >
-              {item.label}
-            </button>
-          </li>
-        ))}
-      </ul>
+    <button
+      type="button"
+      className="nav-item"
+      data-active={active === value ? "" : undefined}
+      onMouseEnter={() => open(value)}
+    >
+      {children}
+    </button>
+  );
+};
 
-      <div
-        className="nav-panel"
-        data-open={isOpen}
-        style={
-          {
-            "--panel-height": `${panelHeight}px`,
-          } as React.CSSProperties
-        }
-        onMouseEnter={cancelClose}
-      >
-        {ITEMS.map((item, index) => (
-          <div
-            key={item.id}
-            ref={setContentRef(item.id)}
-            className="nav-content"
-            data-pos={positionOf(index)}
-            aria-hidden={item.id !== currentId}
-            inert={item.id !== currentId}
-          >
-            <p className="nav-content-label">{item.label}</p>
-            <ul className="nav-content-links">
-              {item.links.map((link) => (
-                <li key={link}>{link}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </nav>
+const Panel = ({ children }: { children: React.ReactNode }) => {
+  const { active, cancelClose } = useNavigation();
+
+  if (!active) {
+    return null;
+  }
+
+  return (
+    <div className="nav-panel" onMouseEnter={cancelClose}>
+      {children}
+    </div>
+  );
+};
+
+const Content = ({
+  value,
+  children,
+}: {
+  value: string;
+  children: React.ReactNode;
+}) => {
+  const { active } = useNavigation();
+
+  if (active !== value) {
+    return null;
+  }
+
+  return children;
+};
+export const Navigation = () => {
+  return (
+    <Root>
+      <Item value="home">Home</Item>
+      <Item value="about">About</Item>
+      <Item value="contact">Contact</Item>
+
+      <Panel>
+        <Content value="home">Home 패널</Content>
+        <Content value="about">About 패널</Content>
+        <Content value="contact">Contact 패널</Content>
+      </Panel>
+    </Root>
   );
 };
