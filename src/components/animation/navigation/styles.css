@@ -34,8 +34,9 @@
   position: absolute;
   top: 100%;
   left: 0;
+  z-index: 1;
   margin-top: 2px;
-  min-width: 220px;
+  min-width: 640px;
   padding: 16px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
@@ -43,4 +44,63 @@
   box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.2);
   color: #111827;
   font-size: 14px;
+}
+
+.nav-panel-body {
+  display: grid;
+  grid-template-columns: 1fr 0.43fr;
+}
+
+.nav-featured {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  padding-right: 20px;
+  border-right: 1px solid #e5e7eb;
+}
+
+.nav-feature {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav-feature:hover {
+  background: #f9fafb;
+}
+
+.nav-feature-title {
+  font-weight: 500;
+}
+
+.nav-feature-copy {
+  max-width: 220px;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.nav-link-list {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-left: 20px;
+}
+
+.nav-link-item {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nav-link-item:hover {
+  color: #111827;
+}
+
+.nav-featured:not(:has(.nav-feature:nth-child(3))) {
+  grid-template-columns: 1fr;
 }

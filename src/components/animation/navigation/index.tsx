@@ -33,7 +33,6 @@ const Root = ({ children }: { children: React.ReactNode }) => {
 
   const close = () => {
     window.clearTimeout(closeTimerRef.current);
-
     closeTimerRef.current = window.setTimeout(() => {
       setActive(undefined);
     }, CLOSE_DELAY);
@@ -49,7 +48,7 @@ const Root = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <NavigationContext.Provider value={{ active, open, close, cancelClose }}>
-      <nav className="nav" onMouseLeave={close}>
+      <nav className="nav not-prose" onMouseLeave={close}>
         {children}
       </nav>
     </NavigationContext.Provider>
@@ -86,7 +85,7 @@ const Panel = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="nav-panel" onMouseEnter={cancelClose}>
-      {children}
+      <div className="nav-panel-body">{children}</div>
     </div>
   );
 };
@@ -106,17 +105,105 @@ const Content = ({
 
   return children;
 };
+
+const Feature = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => {
+  return (
+    <a className="nav-feature" href="#">
+      <span className="nav-feature-title">{title}</span>
+      <span className="nav-feature-copy">{children}</span>
+    </a>
+  );
+};
+
+const Featured = ({ children }: { children: React.ReactNode }) => {
+  return <div className="nav-featured">{children}</div>;
+};
+
+const Links = ({ children }: { children: React.ReactNode }) => {
+  return <div className="nav-link-list">{children}</div>;
+};
+
+const LinkItem = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <a className="nav-link-item" href="#">
+      {children}
+    </a>
+  );
+};
+
 export const Navigation = () => {
   return (
     <Root>
-      <Item value="home">Home</Item>
-      <Item value="about">About</Item>
-      <Item value="contact">Contact</Item>
+      <Item value="product">Product</Item>
+      <Item value="resources">Resources</Item>
+      <Item value="customers">Customers</Item>
 
       <Panel>
-        <Content value="home">Home 패널</Content>
-        <Content value="about">About 패널</Content>
-        <Content value="contact">Contact 패널</Content>
+        <Content value="product">
+          <Featured>
+            <Feature title="Intake">
+              Bring requests and context in from every tool you use.
+            </Feature>
+            <Feature title="Plan and monitor">
+              Set the plan and follow it from idea to launch.
+            </Feature>
+            <Feature title="AI and automations">
+              Agents that follow work from conversation to code.
+            </Feature>
+            <Feature title="Build, review and ship">
+              Write code and review pull requests inside Linear.
+            </Feature>
+          </Featured>
+          <Links>
+            <LinkItem>Integration directory</LinkItem>
+            <LinkItem>Changelog</LinkItem>
+            <LinkItem>Mobile</LinkItem>
+            <LinkItem>Security</LinkItem>
+          </Links>
+        </Content>
+
+        <Content value="resources">
+          <Featured>
+            <Feature title="About">
+              Meet the team and the story behind Linear.
+            </Feature>
+            <Feature title="Careers">
+              Come work with us on the tools our teams use daily.
+            </Feature>
+            <Feature title="Docs">
+              Learn how to use every part of Linear.
+            </Feature>
+            <Feature title="Developers">
+              Build on the Linear API and developer platform.
+            </Feature>
+          </Featured>
+          <Links>
+            <LinkItem>Switch to Linear</LinkItem>
+            <LinkItem>For enterprise</LinkItem>
+            <LinkItem>Startups</LinkItem>
+            <LinkItem>Download</LinkItem>
+          </Links>
+        </Content>
+
+        <Content value="customers">
+          <Featured>
+            <Feature title="Customers">See how teams ship with Linear.</Feature>
+            <Feature title="Enterprise">
+              Security, scale, and admin controls.
+            </Feature>
+          </Featured>
+          <Links>
+            <LinkItem>Case studies</LinkItem>
+            <LinkItem>Security</LinkItem>
+            <LinkItem>Contact</LinkItem>
+          </Links>
+        </Content>
       </Panel>
     </Root>
   );
