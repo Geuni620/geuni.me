@@ -25,8 +25,12 @@ const useNavigation = () => {
 const Root = ({ children }: { children: React.ReactNode }) => {
   const [active, setActive] = useState<string | undefined>(undefined);
   /**
-   * @todo
-   * @link
+   * close delay timer. Base UI `Timeout.currentId`와 같다.
+   *
+   * @todo 모션 붙이기 전에 delay 동작만 다시 볼 것
+   * @see https://github.com/mui/base-ui/blob/master/packages/utils/src/useTimeout.ts
+   * @see https://github.com/mui/base-ui/blob/master/packages/react/src/floating-ui-react/hooks/useHover.ts
+   * @see https://github.com/Dinil-Thilakarathne/sona-ui/blob/master/src/registry/sonaui/fluid-tooltip/fluid-tooltip.tsx
    */
   const closeTimerRef = useRef(0);
 
