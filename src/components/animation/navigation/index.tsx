@@ -24,6 +24,10 @@ const useNavigation = () => {
 
 const Root = ({ children }: { children: React.ReactNode }) => {
   const [active, setActive] = useState<string | undefined>(undefined);
+  /**
+   * @todo
+   * @link
+   */
   const closeTimerRef = useRef(0);
 
   const open = (value: string) => {
