@@ -23,7 +23,7 @@
 
   --nav-width: 640px;
   --nav-copy-width: 220px;
-  --nav-duration: 160ms;
+  --nav-duration: 120ms;
 
   position: relative;
   display: inline-flex;
@@ -40,10 +40,19 @@
   font-size: var(--nav-font);
   cursor: pointer;
   transition: color var(--nav-duration) ease;
+  backface-visibility: hidden;
+}
+
+.nav:hover .nav-item {
+  transition-delay: 0s;
+}
+
+.nav:not(:hover) .nav-item {
+  transition-delay: var(--nav-duration);
 }
 
 .nav-item:hover,
-.nav-item[data-active] {
+.nav:hover .nav-item[data-active] {
   color: var(--nav-text);
 }
 
@@ -61,6 +70,15 @@
   box-shadow: var(--nav-shadow);
   color: var(--nav-text);
   font-size: var(--nav-font);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--nav-duration) ease var(--nav-duration);
+}
+
+.nav:hover .nav-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .nav-panel-body {
