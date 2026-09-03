@@ -1,15 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import "./styles.css";
 
-const CLOSE_DELAY = 180;
-
 interface NavigationContextValue {
-  active?: string;
+  active: string;
+  height?: number;
   open: (value: string) => void;
-  close: () => void;
-  cancelClose: () => void;
+  setContent: (value: string, node: HTMLDivElement | null) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -23,32 +21,31 @@ const useNavigation = () => {
 };
 
 const Root = ({ children }: { children: React.ReactNode }) => {
-  const [active, setActive] = useState<string | undefined>(undefined);
-
-  const closeTimerRef = useRef(0);
+  const [active, setActive] = useState("product");
+  const [height, setHeight] = useState<number>();
+  const contentsRef = useRef(new Map<string, HTMLDivElement>());
 
   const open = (value: string) => {
-    window.clearTimeout(closeTimerRef.current);
     setActive(value);
+
+    const node = contentsRef.current.get(value);
+    if (node) {
+      setHeight(node.offsetHeight);
+    }
   };
 
-  const close = () => {
-    window.clearTimeout(closeTimerRef.current);
-  };
+  const setContent = (value: string, node: HTMLDivElement | null) => {
+    if (node) {
+      contentsRef.current.set(value, node);
+      return;
+    }
 
-  const cancelClose = () => {
-    window.clearTimeout(closeTimerRef.current);
+    contentsRef.current.delete(value);
   };
-
-  useEffect(() => {
-    return () => window.clearTimeout(closeTimerRef.current);
-  }, []);
 
   return (
-    <NavigationContext.Provider value={{ active, open, close, cancelClose }}>
-      <nav className="nav not-prose" onMouseLeave={close}>
-        {children}
-      </nav>
+    <NavigationContext.Provider value={{ active, height, open, setContent }}>
+      <nav className="nav not-prose">{children}</nav>
     </NavigationContext.Provider>
   );
 };
@@ -75,11 +72,16 @@ const Item = ({
 };
 
 const Panel = ({ children }: { children: React.ReactNode }) => {
-  const { cancelClose } = useNavigation();
+  const { height } = useNavigation();
 
   return (
-    <div className="nav-panel" onMouseEnter={cancelClose}>
-      <div className="nav-panel-body">{children}</div>
+    <div className="nav-panel">
+      <div
+        className="nav-panel-body"
+        style={height === undefined ? undefined : { height }}
+      >
+        {children}
+      </div>
     </div>
   );
 };
@@ -91,13 +93,19 @@ const Content = ({
   value: string;
   children: React.ReactNode;
 }) => {
-  const { active } = useNavigation();
+  const { active, setContent } = useNavigation();
+  const isActive = active === value;
 
-  if (active !== value) {
-    return null;
-  }
-
-  return children;
+  return (
+    <div
+      className="nav-content"
+      data-active={isActive ? "" : undefined}
+      inert={!isActive}
+      ref={(node) => setContent(value, node)}
+    >
+      {children}
+    </div>
+  );
 };
 
 const Feature = ({

@@ -23,7 +23,9 @@
 
   --nav-width: 640px;
   --nav-copy-width: 220px;
-  --nav-duration: 120ms;
+  --nav-duration: 150ms;
+  --nav-morph: 200ms;
+  --nav-ease: cubic-bezier(0.25, 1, 0.5, 1);
 
   position: relative;
   display: inline-flex;
@@ -39,20 +41,15 @@
   font: inherit;
   font-size: var(--nav-font);
   cursor: pointer;
-  transition: color var(--nav-duration) ease;
-  backface-visibility: hidden;
+  transition: color var(--nav-duration) ease var(--nav-duration);
 }
 
-.nav:hover .nav-item {
+.nav:is(:hover, :focus-within) .nav-item {
   transition-delay: 0s;
 }
 
-.nav:not(:hover) .nav-item {
-  transition-delay: var(--nav-duration);
-}
-
 .nav-item:hover,
-.nav:hover .nav-item[data-active] {
+.nav:is(:hover, :focus-within) .nav-item[data-active] {
   color: var(--nav-text);
 }
 
@@ -64,6 +61,7 @@
   margin-top: var(--nav-gap);
   min-width: var(--nav-width);
   padding: var(--nav-pad);
+  overflow: hidden;
   border: 1px solid var(--nav-line);
   border-radius: var(--nav-radius);
   background: var(--nav-bg);
@@ -72,18 +70,40 @@
   font-size: var(--nav-font);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--nav-duration) ease var(--nav-duration);
+  transition: opacity var(--nav-duration) var(--nav-ease) var(--nav-duration);
 }
 
-.nav:hover .nav-panel {
+.nav-panel::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 100%;
+  height: var(--nav-gap);
+}
+
+.nav:is(:hover, :focus-within) .nav-panel {
   opacity: 1;
   pointer-events: auto;
   transition-delay: 0s;
 }
 
 .nav-panel-body {
+  position: relative;
+  transition: height var(--nav-morph) var(--nav-ease);
+}
+
+.nav-content {
+  position: absolute;
+  inset: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 0.43fr;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--nav-morph) var(--nav-ease);
+}
+
+.nav-content[data-active] {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .nav-featured {
@@ -138,4 +158,13 @@
 
 .nav-link-item:hover {
   color: var(--nav-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item,
+  .nav-panel,
+  .nav-panel-body,
+  .nav-content {
+    transition: none;
+  }
 }
