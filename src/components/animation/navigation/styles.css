@@ -32,6 +32,7 @@
   align-items: center;
 }
 
+/* 라벨 */
 .nav-item {
   padding: var(--nav-hit) 12px;
   border: 0;
@@ -41,49 +42,43 @@
   font: inherit;
   font-size: var(--nav-font);
   cursor: pointer;
-  transition: color var(--nav-duration) ease var(--nav-duration);
+  transition: color var(--nav-duration) ease;
 }
 
-.nav:is(:hover, :focus-within) .nav-item {
-  transition-delay: 0s;
-}
-
-.nav-item:hover,
-.nav:is(:hover, :focus-within) .nav-item[data-active] {
+.nav-item:hover {
   color: var(--nav-text);
 }
 
+/* 패널 */
 .nav-panel {
   position: absolute;
   top: 100%;
   left: 0;
   z-index: 1;
+
   margin-top: var(--nav-gap);
   min-width: var(--nav-width);
   padding: var(--nav-pad);
   overflow: hidden;
+
   border: 1px solid var(--nav-line);
   border-radius: var(--nav-radius);
   background: var(--nav-bg);
   box-shadow: var(--nav-shadow);
+
   color: var(--nav-text);
   font-size: var(--nav-font);
+
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity var(--nav-duration) var(--nav-ease) var(--nav-duration);
+  transition: opacity var(--nav-duration) var(--nav-ease);
 }
 
-.nav-panel::before {
-  content: "";
-  position: absolute;
-  inset: auto 0 100%;
-  height: var(--nav-gap);
-}
-
-.nav:is(:hover, :focus-within) .nav-panel {
+.nav:has(> .nav-item:hover) .nav-panel {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
-  transition-delay: 0s;
 }
 
 .nav-panel-body {
@@ -91,11 +86,13 @@
   transition: height var(--nav-morph) var(--nav-ease);
 }
 
+/* 선택한 콘텐츠 */
 .nav-content {
   position: absolute;
   inset: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 0.43fr;
+
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--nav-morph) var(--nav-ease);
@@ -106,6 +103,7 @@
   pointer-events: auto;
 }
 
+/* 주요 콘텐츠 영역 */
 .nav-featured {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -144,6 +142,7 @@
   line-height: var(--nav-leading);
 }
 
+/* 링크 목록 */
 .nav-link-list {
   display: flex;
   flex-direction: column;
@@ -156,10 +155,7 @@
   text-decoration: none;
 }
 
-.nav-link-item:hover {
-  color: var(--nav-text);
-}
-
+/* 동작 줄이기 */
 @media (prefers-reduced-motion: reduce) {
   .nav-item,
   .nav-panel,
