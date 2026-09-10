@@ -4,7 +4,7 @@ import { createContext, useContext, useRef, useState } from "react";
 import "./styles.css";
 
 interface NavigationContextValue {
-  active: string;
+  active: string | null;
   height?: number;
   open: (value: string) => void;
   setContent: (value: string, node: HTMLDivElement | null) => void;
@@ -14,24 +14,34 @@ const NavigationContext = createContext<NavigationContextValue | null>(null);
 
 const useNavigation = () => {
   const context = useContext(NavigationContext);
+
   if (!context) {
     throw new Error("please use Navigation.Root");
   }
+
   return context;
 };
 
 const Root = ({ children }: { children: React.ReactNode }) => {
-  const [active, setActive] = useState("product");
+  const [active, setActive] = useState<string | null>(null);
   const [height, setHeight] = useState<number>();
+
   const contentsRef = useRef(new Map<string, HTMLDivElement>());
 
   const open = (value: string) => {
-    setActive(value);
-
     const node = contentsRef.current.get(value);
-    if (node) {
-      setHeight(node.offsetHeight);
+
+    if (!node) {
+      return;
     }
+
+    setActive(value);
+    setHeight(node.offsetHeight);
+  };
+
+  const close = () => {
+    setActive(null);
+    setHeight(undefined);
   };
 
   const setContent = (value: string, node: HTMLDivElement | null) => {
@@ -45,7 +55,31 @@ const Root = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <NavigationContext.Provider value={{ active, height, open, setContent }}>
-      <nav className="nav not-prose">{children}</nav>
+      <nav
+        className="nav not-prose"
+        onMouseLeave={(event) => {
+          // 마우스가 나가도 내부에 포커스가 있으면 유지합니다.
+          if (!event.currentTarget.contains(document.activeElement)) {
+            close();
+          }
+        }}
+        onBlur={(event) => {
+          const nav = event.currentTarget;
+          const nextFocus = event.relatedTarget;
+
+          // 내부 요소 사이의 포커스 이동은 닫는 조건이 아닙니다.
+          if (nav.contains(nextFocus)) {
+            return;
+          }
+
+          // 포커스가 나가도 마우스가 내부에 있으면 유지합니다.
+          if (!nav.matches(":hover")) {
+            close();
+          }
+        }}
+      >
+        {children}
+      </nav>
     </NavigationContext.Provider>
   );
 };
@@ -64,7 +98,9 @@ const Item = ({
       type="button"
       className="nav-item"
       data-active={active === value ? "" : undefined}
+      aria-expanded={active === value}
       onMouseEnter={() => open(value)}
+      onFocus={() => open(value)}
     >
       {children}
     </button>
@@ -162,6 +198,7 @@ export const Navigation = () => {
               Write code and review pull requests inside Linear.
             </Feature>
           </Featured>
+
           <Links>
             <LinkItem>Integration directory</LinkItem>
             <LinkItem>Changelog</LinkItem>
@@ -185,6 +222,7 @@ export const Navigation = () => {
               Build on the Linear API and developer platform.
             </Feature>
           </Featured>
+
           <Links>
             <LinkItem>Switch to Linear</LinkItem>
             <LinkItem>For enterprise</LinkItem>
@@ -200,6 +238,7 @@ export const Navigation = () => {
               Security, scale, and admin controls.
             </Feature>
           </Featured>
+
           <Links>
             <LinkItem>Case studies</LinkItem>
             <LinkItem>Security</LinkItem>
