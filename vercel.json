@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/apps/parking/support.html",
+      "destination": "https://support.geuni.me/parking/support.html",
+      "permanent": false
+    },
+    {
+      "source": "/apps/parking/privacy.html",
+      "destination": "https://support.geuni.me/parking/privacy.html",
+      "permanent": false
+    }
+  ]
+}
