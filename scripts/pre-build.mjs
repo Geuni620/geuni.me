@@ -14,7 +14,7 @@ const copyImage = async () => {
         const ext = path.extname(src).toLowerCase();
         return (
           fs.statSync(src).isDirectory() ||
-          [".webp", ".png", ".jpg", ".jpeg", ".gif"].includes(ext)
+          [".webp", ".png", ".jpg", ".jpeg", ".gif", ".wav"].includes(ext)
         );
       },
     });
